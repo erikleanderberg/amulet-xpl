@@ -1,0 +1,262 @@
+<title>Amp &amp; LRA Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F6; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2;
+  --accent:#8F1D3D; --pad:#D9A441; --warn:#B4380B; --warn-bg:#FDF1EA; --ok:#18794A; --ok-bg:#EAF6EF;
+  --code-bg:#EEF1F4; --chip-bg:#E9EDF1; --sig:#7A2E86;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+    --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+    --code-bg:#1D2833; --chip-bg:#22303C; --sig:#C88AD6;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+  --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+  --code-bg:#1D2833; --chip-bg:#22303C; --sig:#C88AD6;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:36px 80px;display:flex;flex-direction:column;gap:40px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+h2{font-size:28px;font-weight:600}
+p{margin:0;max-width:66ch}
+code{font-family:var(--mono);font-size:.9em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:12px;background:var(--chip-bg);padding:4px 9px;border-radius:4px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+
+.fixed{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.fixed h2{font-size:22px}
+.fixed ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.fixed li{max-width:80ch}
+
+.plate{background:#ECEEEA;border-radius:12px;border:1px solid #C9CEC6;overflow-x:auto;padding:10px}
+.plate svg{display:block;width:100%;min-width:720px;height:auto}
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{color:var(--muted);font-size:14px;max-width:90ch}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+.lab{font-family:var(--mono);font-weight:600;font-size:14px}
+.sub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pin{font-family:var(--mono);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.pin::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pad);box-shadow:inset 0 0 0 1.5px #8A6516}
+.sw{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px;font-weight:500}
+.sw i{width:26px;height:8px;border-radius:4px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px;max-width:74ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;font-weight:600;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;max-width:80ch}
+.warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:14px 18px;font-size:14px;max-width:none}
+.warn b{color:var(--warn)}
+.pass{display:grid;gap:8px;background:var(--ok-bg);border-radius:10px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.pass h2{font-size:22px}
+.pass p{font-size:14px}
+.checks{display:grid;gap:12px}
+.checks .c{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.checks .n{font-family:var(--mono);font-size:12px;font-weight:600;width:20px;height:20px;border-radius:50%;background:var(--chip-bg);color:var(--muted);display:grid;place-items:center;margin-top:1px}
+.checks .t b{color:var(--ink)}
+.checks .t span{color:var(--muted);font-size:14px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Amulet · bench rig · haptic channel</div>
+  <h1>Amp &amp; LRA Wiring</h1>
+  <p class="lede">The XIAO sends digital audio over three I²S wires to the MAX98357A, which turns it into a bridged drive for the Drake linear resonant actuator. Seven wires to the amp, two to the coil, and the amp's two strap pins set once.</p>
+  <div class="meta">
+    <span>Amp <b>Adafruit 3006</b> · MAX98357A I²S</span>
+    <span>Actuator <b>TITAN Drake HF</b> · 8 Ω · 0.5–7 Vpp · resonance ~160 Hz</span>
+    <span>Pins <b>D8 DIN · D9 BCLK · D10 LRC</b></span>
+    <span>Power <b>3.3 V</b> · never 5 V</span>
+  </div>
+</header>
+
+<div class="fixed" role="note">
+  <h2>Three things that are easy to get wrong</h2>
+  <ul>
+    <li><b>Amp power is 3.0 to 3.3 V, never 5 V.</b> The amp is bridge-tied and swings about twice its supply across the coil. At 3.3 V that's 6.6 Vpp, under the Drake's 7 Vpp rating. At 5 V it's 10 Vpp, which cooks the coil. For these short, bounded tests the + rail is fine; if you have a separate 3.0 to 3.3 V bench supply, use it for Vin and share GND.</li>
+    <li><b>SD tied high, GAIN tied low.</b> SD left floating drifts into shutdown and the amp goes quiet at random. GAIN to GND gives 12 dB; the level is set in firmware, not here.</li>
+    <li><b>Neither LRA lead goes to ground.</b> The coil sits across the amp's + and − output terminals only. Grounding one side shorts half the bridge.</li>
+  </ul>
+</div>
+
+<section aria-labelledby="dia-h">
+  <h2 id="dia-h">Wiring</h2>
+  <figure>
+    <div class="plate">
+<svg viewBox="0 0 840 560" role="img" aria-label="XIAO seen from above on the left, amp breakout on the right. Three signal wires run from XIAO D10, D9 and D8 to the amp's LRC, BCLK and DIN pins. The amp's Vin and SD go to the 3.3 volt rail, GND and GAIN go to the ground rail. The Drake LRA sits above the amp on its screw terminal block." font-family="IBM Plex Mono, Menlo, monospace">
+  <!-- rails -->
+  <line x1="24" y1="30" x2="816" y2="30" stroke="#2B5BA8" stroke-width="3"/>
+  <line x1="24" y1="56" x2="816" y2="56" stroke="#D8342A" stroke-width="3"/>
+  <text x="30" y="22" font-size="11" fill="#2B5BA8" font-weight="600">− RAIL (BLUE STRIPE) = GND</text>
+  <text x="30" y="49" font-size="11" fill="#B32A21" font-weight="600">+ RAIL (RED STRIPE) = 3V3</text>
+
+  <!-- XIAO GND/3V3 to rails (from the FSR page) -->
+  <path d="M380 240 H400 V30" fill="none" stroke="#1B1F24" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="400" cy="30" r="5" fill="#1B1F24"/>
+  <path d="M380 290 H420 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="420" cy="56" r="5" fill="#D8342A"/>
+  <text x="432" y="110" font-size="10.5" fill="#5A6470">rails already built</text>
+  <text x="432" y="123" font-size="10.5" fill="#5A6470">(FSR page, wires ① ②)</text>
+
+  <!-- XIAO -->
+  <rect x="260" y="120" width="60" height="28" rx="5" fill="#A9B1B9" stroke="#6E7780"/>
+  <text x="290" y="113" text-anchor="middle" font-size="11" fill="#1B1F24" font-weight="600">USB-C</text>
+  <rect x="200" y="140" width="180" height="405" rx="12" fill="#22272E"/>
+  <text x="290" y="516" text-anchor="middle" font-size="12" fill="#F3F5F7" font-weight="600">XIAO nRF52840</text>
+  <text x="290" y="532" text-anchor="middle" font-size="10" fill="#AEB6BF">Sense · top view</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.5">
+    <circle cx="200" cy="190" r="7"/><circle cx="200" cy="240" r="7"/><circle cx="200" cy="290" r="7"/><circle cx="200" cy="340" r="7"/><circle cx="200" cy="390" r="7"/><circle cx="200" cy="440" r="7"/><circle cx="200" cy="490" r="7"/>
+    <circle cx="380" cy="190" r="7"/><circle cx="380" cy="240" r="7"/><circle cx="380" cy="290" r="7"/><circle cx="380" cy="340" r="7"/><circle cx="380" cy="390" r="7"/><circle cx="380" cy="440" r="7"/><circle cx="380" cy="490" r="7"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#F3F5F7">
+    <text x="216" y="189">D0</text><text x="216" y="239">D1</text><text x="216" y="289">D2</text><text x="216" y="339">D3</text><text x="216" y="389">D4</text><text x="216" y="439">D5</text><text x="216" y="489">D6</text>
+    <text x="364" y="189" text-anchor="end">5V</text><text x="364" y="239" text-anchor="end">GND</text><text x="364" y="289" text-anchor="end">3V3</text><text x="364" y="339" text-anchor="end">D10</text><text x="364" y="389" text-anchor="end">D9</text><text x="364" y="439" text-anchor="end">D8</text><text x="364" y="489" text-anchor="end">D7</text>
+  </g>
+  <g font-size="10" fill="#AEB6BF">
+    <text x="216" y="203">A0</text><text x="216" y="253">A1</text>
+    <text x="364" y="203" text-anchor="end">leave empty</text><text x="364" y="253" text-anchor="end">ground</text><text x="364" y="303" text-anchor="end">3.3 V</text>
+    <text x="364" y="353" text-anchor="end">P1.15</text><text x="364" y="403" text-anchor="end">P1.14</text><text x="364" y="453" text-anchor="end">P1.13</text>
+  </g>
+  <g font-size="10.5" fill="#6B7580">
+    <text x="186" y="194" text-anchor="end">FSR (yellow)</text>
+    <text x="186" y="244" text-anchor="end">pulse (purple)</text>
+  </g>
+
+  <!-- amp breakout -->
+  <rect x="520" y="280" width="180" height="200" rx="10" fill="#1E3A5F" stroke="#132741"/>
+  <text x="692" y="300" text-anchor="end" font-size="11" fill="#DCE6F2" font-weight="600">MAX98357A</text>
+  <text x="692" y="313" text-anchor="end" font-size="10" fill="#9FB4CC">Adafruit 3006</text>
+  <rect x="596" y="318" width="28" height="28" rx="3" fill="#0F1D2E" stroke="#3A5474"/>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.5">
+    <circle cx="520" cy="304" r="7"/><circle cx="520" cy="330" r="7"/><circle cx="520" cy="356" r="7"/><circle cx="520" cy="382" r="7"/><circle cx="520" cy="408" r="7"/><circle cx="520" cy="434" r="7"/><circle cx="520" cy="460" r="7"/>
+  </g>
+  <g font-size="12" font-weight="600" fill="#F3F5F7">
+    <text x="534" y="308">LRC</text><text x="534" y="334">BCLK</text><text x="534" y="360">DIN</text><text x="534" y="386">GAIN</text><text x="534" y="412">SD</text><text x="534" y="438">GND</text><text x="534" y="464">Vin</text>
+  </g>
+  <!-- terminal block on top edge -->
+  <rect x="578" y="262" width="64" height="30" rx="3" fill="#2F8F4E" stroke="#1E5F33"/>
+  <circle cx="596" cy="277" r="6" fill="#1E5F33"/><circle cx="624" cy="277" r="6" fill="#1E5F33"/>
+  <text x="596" y="254" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1F24">+</text>
+  <text x="624" y="254" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1F24">−</text>
+  <text x="568" y="281" text-anchor="end" font-size="10" fill="#5A6470">screw terminals</text>
+
+  <!-- LRA -->
+  <rect x="580" y="150" width="60" height="44" rx="6" fill="#3A3F46" stroke="#1B1F24"/>
+  <rect x="590" y="160" width="40" height="24" rx="3" fill="#565D66"/>
+  <text x="610" y="140" text-anchor="middle" font-size="12" font-weight="600" fill="#1B1F24">Drake LRA</text>
+  <line x1="596" y1="194" x2="596" y2="262" stroke="#D8342A" stroke-width="3"/>
+  <line x1="624" y1="194" x2="624" y2="262" stroke="#1B1F24" stroke-width="3"/>
+  <text x="568" y="215" text-anchor="end" font-size="10" fill="#5A6470">two coil leads → + and −</text>
+  <text x="568" y="228" text-anchor="end" font-size="10" fill="#5A6470">either way round, tighten both</text>
+  <text x="568" y="241" text-anchor="end" font-size="10" fill="#B4380B" font-weight="600">neither lead to GND</text>
+
+  <!-- signal wires: D10->LRC, D9->BCLK, D8->DIN -->
+  <path d="M380 340 H430 V304 H520" fill="none" stroke="#2E9E5B" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="380" cy="340" r="5" fill="#2E9E5B"/>
+  <path d="M380 390 H450 V330 H520" fill="none" stroke="#2B5BA8" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="380" cy="390" r="5" fill="#2B5BA8"/>
+  <path d="M380 440 H470 V356 H520" fill="none" stroke="#E07A1F" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="380" cy="440" r="5" fill="#E07A1F"/>
+  <text x="475" y="297" font-size="10" fill="#1E6E3F" font-weight="600" text-anchor="middle">③ D10 → LRC</text>
+  <text x="415" y="382" font-size="10" fill="#2B5BA8" font-weight="600" text-anchor="middle">④ D9 → BCLK</text>
+  <text x="425" y="432" font-size="10" fill="#B85E10" font-weight="600" text-anchor="middle">⑤ D8 → DIN</text>
+
+  <!-- power + straps: Vin, GND, SD, GAIN routed under and up the right side -->
+  <path d="M520 460 H508 V492 H740 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="740" cy="56" r="5" fill="#D8342A"/>
+  <path d="M520 434 H500 V504 H760 V30" fill="none" stroke="#1B1F24" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="760" cy="30" r="5" fill="#1B1F24"/>
+  <path d="M520 408 H492 V516 H780 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="780" cy="56" r="5" fill="#D8342A"/>
+  <path d="M520 382 H484 V528 H800 V30" fill="none" stroke="#1B1F24" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="800" cy="30" r="5" fill="#1B1F24"/>
+  <g font-size="10" font-weight="600">
+    <text x="737" y="470" fill="#B32A21" transform="rotate(-90 737 470)" text-anchor="start">⑥ Vin → + rail</text>
+    <text x="757" y="470" fill="#1B1F24" transform="rotate(-90 757 470)" text-anchor="start">⑦ GND → − rail</text>
+    <text x="777" y="470" fill="#B32A21" transform="rotate(-90 777 470)" text-anchor="start">⑧ SD → + rail</text>
+    <text x="797" y="470" fill="#1B1F24" transform="rotate(-90 797 470)" text-anchor="start">⑨ GAIN → − rail</text>
+  </g>
+  <text x="600" y="548" text-anchor="middle" font-size="10" fill="#5A6470">lower four pins route under the amp and up the right side</text>
+</svg>
+    </div>
+    <figcaption>The XIAO at left, the amp breakout at right with its header pins facing the XIAO and its screw-terminal block at the top. Three colours for three I²S signals: green LRC, blue BCLK, orange DIN. Red and black to the rails for power and the two strap pins. The LRA hangs off the terminal block and touches nothing else.</figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="tab-h">
+  <h2 id="tab-h">Every wire</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>#</th><th>From</th><th>Colour</th><th>To</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td class="lab">③</td><td><span class="pin">D10</span><span class="sub">XIAO right edge, 4th pin · P1.15</span></td><td><span class="sw"><i style="background:#2E9E5B"></i>green</span></td><td><span class="lab">LRC</span><span class="sub">amp pin 1</span></td><td>Left/right clock (word select)</td></tr>
+      <tr><td class="lab">④</td><td><span class="pin">D9</span><span class="sub">XIAO right edge, 5th pin · P1.14</span></td><td><span class="sw"><i style="background:#2B5BA8"></i>blue</span></td><td><span class="lab">BCLK</span><span class="sub">amp pin 2</span></td><td>Bit clock, 1.52 MHz</td></tr>
+      <tr><td class="lab">⑤</td><td><span class="pin">D8</span><span class="sub">XIAO right edge, 6th pin · P1.13</span></td><td><span class="sw"><i style="background:#E07A1F"></i>orange</span></td><td><span class="lab">DIN</span><span class="sub">amp pin 3</span></td><td>Audio data</td></tr>
+      <tr><td class="lab">⑥</td><td><span class="lab">Vin</span><span class="sub">amp pin 7</span></td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>+ rail<span class="sub">3.3 V, or a separate 3.0–3.3 V supply</span></td><td>Amp power</td></tr>
+      <tr><td class="lab">⑦</td><td><span class="lab">GND</span><span class="sub">amp pin 6</span></td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>− rail</td><td>Amp ground (shared with the XIAO)</td></tr>
+      <tr><td class="lab">⑧</td><td><span class="lab">SD</span><span class="sub">amp pin 5</span></td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>+ rail<span class="sub">same net as Vin</span></td><td>Shutdown pin held high = amp enabled</td></tr>
+      <tr><td class="lab">⑨</td><td><span class="lab">GAIN</span><span class="sub">amp pin 4</span></td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>− rail</td><td>12 dB gain. Level is set in the firmware.</td></tr>
+      <tr><td class="lab">⑩</td><td><span class="lab">LRA lead 1</span></td><td><span class="sw"><i style="background:#8A9199"></i>bare</span></td><td>terminal <b>+</b></td><td rowspan="2" style="vertical-align:middle">The coil, bridged. No polarity. Nothing to GND.</td></tr>
+      <tr><td class="lab">⑪</td><td><span class="lab">LRA lead 2</span></td><td><span class="sw"><i style="background:#8A9199"></i>bare</span></td><td>terminal <b>−</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">The amp's header reads <b>LRC · BCLK · DIN · GAIN · SD · GND · Vin</b> down the edge, in that order. If you've soldered the header on the other side, the order is the same read from the same end.</p>
+</section>
+
+<section aria-labelledby="do-h">
+  <h2 id="do-h">Do it</h2>
+  <ol class="steps">
+    <li><span><b>Unplug USB.</b> The amp must never see power before SD and GAIN are strapped.</span></li>
+    <li><span>Seat the amp breakout in the breadboard with its header pins facing the XIAO and the green terminal block facing away.</span></li>
+    <li><span>Strap pins first: <b>GAIN → − rail</b> (⑨), <b>SD → + rail</b> (⑧).</span></li>
+    <li><span>Power: <b>GND → − rail</b> (⑦), then <b>Vin → + rail</b> (⑥). Using a separate supply? Its GND goes to the − rail too; only Vin comes from the supply.</span></li>
+    <li><span>Signals: <b>D10 → LRC</b> green (③), <b>D9 → BCLK</b> blue (④), <b>D8 → DIN</b> orange (⑤). These three are the ones that get swapped; check them twice.</span></li>
+    <li><span>Loosen the two terminal screws, push one LRA lead into each, tighten. Tug each lead gently.</span></li>
+    <li><span>Plug USB in. The amp is silent until the dashboard asks for a drive, because the firmware only starts the I²S clock during a run and stops it after. No clock, no drive.</span></li>
+  </ol>
+</section>
+
+<div class="warn">
+  <b>The firmware bounds every drive so you can't leave a tone running.</b> Tone and sweeps stop themselves after 3 s or at the end of the step table, and there's a 1.5 s cooldown before the next long run. A continuous sine at resonance puts about 0.5 W into an 8 Ω coil rated for far less on average; music-like signals average around 80 mW. If the LRA gets warm to the touch, stop. If it feels <i>harder</i> rather than <i>louder</i> when you step Vol up, that's clipping: step back down.
+</div>
+
+<section aria-labelledby="see-h">
+  <h2 id="see-h">What you'll see</h2>
+  <div class="checks">
+    <div class="c"><span class="n">1</span><span class="t"><b>Press Tap: the dashboard's peak jumps above 0 and the amp readout says DRIVING.</b> <span>That's the "amp takes the signal" test. Peak stays 0 = the board never produced samples: firmware or I²S pins.</span></span></div>
+    <div class="c"><span class="n">2</span><span class="t"><b>You feel the tap.</b> <span>Hold the LRA between two fingertips. Peak &gt; 0 but nothing felt = amp power, SD strap, or the coil isn't in the terminals.</span></span></div>
+    <div class="c"><span class="n">3</span><span class="t"><b>Tone 160 Hz is distinctly stronger than the tap.</b> <span>Three seconds, then it stops on its own. Walk Vol up until it stops getting stronger; back off one step.</span></span></div>
+    <div class="c"><span class="n">4</span><span class="t"><b>The wide sweep gets strong somewhere between 130 and 190 Hz and fades above 250.</b> <span>Press Mark this step at the strongest point. If the strongest point is way off, the actuator is loaded by whatever it's touching, or it's not the HF variant.</span></span></div>
+    <div class="c"><span class="n">5</span><span class="t"><b>The FSR and pulse traces don't get fuzzier while the amp runs.</b> <span>Automatic test. If they do, the amp is pulling the 3.3 V rail around: separate supply for Vin, or a 100 µF cap across Vin and GND at the amp.</span></span></div>
+    <div class="c"><span class="n">6</span><span class="t"><b>Tap on every heartbeat.</b> <span>Finger on the pulse sensor, switch it on. A tap per beat, 80 ms each. This is the first Amulet behaviour running end to end: sensed heartbeat in, felt beat out.</span></span></div>
+  </div>
+</section>
+
+<div class="pass">
+  <h2>Test it the moment it's wired</h2>
+  <p>The Haptics panel is the bottom section of the dashboard at <code>http://localhost:8787</code>: Tap, Tone, two sweeps, Stop, Vol, and the heartbeat toggle. It needs the <code>bench3_live</code> firmware; if the panel says NO STATUS, the board is still on bench2 and needs <code>Bench 3 Dashboard.command</code>.</p>
+</div>
+
+</div>

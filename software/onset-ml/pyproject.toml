@@ -1,0 +1,12 @@
+[project]
+name = "onset-ml"
+version = "0.1.0"
+description = "Amulet XPL sleep-onset detector: data, features, models, autoresearch loop, live GUI"
+requires-python = ">=3.12"
+dependencies = [
+  "numpy>=2.0",
+  "scipy>=1.14",
+  "scikit-learn>=1.5",
+  "pandas>=2.2",
+  "pyserial>=3.5",
+]

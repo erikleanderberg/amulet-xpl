@@ -1,0 +1,259 @@
+<title>FSR Strip Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F6; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2;
+  --accent:#8F1D3D; --pad:#D9A441; --warn:#B4380B; --warn-bg:#FDF1EA; --ok:#18794A; --ok-bg:#EAF6EF;
+  --code-bg:#EEF1F4; --chip-bg:#E9EDF1; --sig:#7A2E86;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+    --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+    --code-bg:#1D2833; --chip-bg:#22303C; --sig:#C88AD6;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+  --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+  --code-bg:#1D2833; --chip-bg:#22303C; --sig:#C88AD6;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:36px 80px;display:flex;flex-direction:column;gap:40px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+h2{font-size:28px;font-weight:600}
+p{margin:0;max-width:66ch}
+code{font-family:var(--mono);font-size:.9em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:12px;background:var(--chip-bg);padding:4px 9px;border-radius:4px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+
+.fixed{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.fixed h2{font-size:22px}
+.fixed ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.fixed li{max-width:80ch}
+
+.plate{background:#ECEEEA;border-radius:12px;border:1px solid #C9CEC6;overflow-x:auto;padding:10px}
+.plate svg{display:block;width:100%;min-width:720px;height:auto}
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{color:var(--muted);font-size:14px;max-width:90ch}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:600px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+.lab{font-family:var(--mono);font-weight:600;font-size:14px}
+.sub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pin{font-family:var(--mono);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.pin::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pad);box-shadow:inset 0 0 0 1.5px #8A6516}
+.sw{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px;font-weight:500}
+.sw i{width:26px;height:8px;border-radius:4px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px;max-width:74ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;font-weight:600;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;max-width:80ch}
+.warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:14px 18px;font-size:14px;max-width:none}
+.warn b{color:var(--warn)}
+.pass{display:grid;gap:8px;background:var(--ok-bg);border-radius:10px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.pass h2{font-size:22px}
+.pass p{font-size:14px}
+.checks{display:grid;gap:12px}
+.checks .c{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start}
+.checks .n{font-family:var(--mono);font-size:12px;font-weight:600;width:20px;height:20px;border-radius:50%;background:var(--chip-bg);color:var(--muted);display:grid;place-items:center;margin-top:1px}
+.checks .t b{color:var(--ink)}
+.checks .t span{color:var(--muted);font-size:14px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Amulet · bench rig · force channel</div>
+  <h1>FSR Strip Wiring</h1>
+  <p class="lede">The force-sensing strip is a resistor that drops from over a megohm to a few kilohms when pressed. One fixed resistor turns that into a voltage the XIAO can read on D0. This page also builds the two power rails everything else on the board hangs off.</p>
+  <div class="meta">
+    <span>Sensor <b>FSR strip</b> · 2 pins, not polarised</span>
+    <span>Reads on <b>D0 / A0</b></span>
+    <span>Divider <b>10 kΩ to GND</b></span>
+    <span>Rest <b>&lt; 20 counts</b> · hard press <b>600+</b></span>
+  </div>
+</header>
+
+<div class="fixed" role="note">
+  <h2>Rewiring from scratch: rails first</h2>
+  <ul>
+    <li><b>XIAO GND → − rail (blue stripe), XIAO 3V3 → + rail (red stripe).</b> Two wires. The pulse sensor and the amp both feed off these same rails, so get them in before anything else.</li>
+    <li><b>3V3, never 5V.</b> The XIAO's pins are not 5 V tolerant. The 5V pin on the right edge stays empty all day.</li>
+    <li><b>The FSR has no polarity.</b> Either pin can go to the + rail; the other goes to the junction row. What matters is that the 10 kΩ sits between the junction and ground.</li>
+  </ul>
+</div>
+
+<section aria-labelledby="dia-h">
+  <h2 id="dia-h">Wiring</h2>
+  <figure>
+    <div class="plate">
+<svg viewBox="0 0 840 560" role="img" aria-label="XIAO seen from above, USB-C up. The FSR strip stands to the left with two tail pins. One pin goes by red wire to the 3.3 volt rail. The other goes to a junction row. From the junction a yellow wire runs to XIAO D0, and a 10 kilohm resistor runs to the ground rail. XIAO GND and 3V3 feed the two rails." font-family="IBM Plex Mono, Menlo, monospace">
+  <defs>
+    <g id="gnd" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round">
+      <line x1="0" y1="0" x2="0" y2="10"/><line x1="-9" y1="10" x2="9" y2="10"/><line x1="-5.5" y1="14.5" x2="5.5" y2="14.5"/><line x1="-2" y1="19" x2="2" y2="19"/>
+    </g>
+  </defs>
+
+  <!-- rails -->
+  <line x1="24" y1="30" x2="816" y2="30" stroke="#2B5BA8" stroke-width="3"/>
+  <line x1="24" y1="56" x2="816" y2="56" stroke="#D8342A" stroke-width="3"/>
+  <text x="812" y="22" text-anchor="end" font-size="11" fill="#2B5BA8" font-weight="600">− RAIL (BLUE STRIPE) = GND</text>
+  <text x="812" y="49" text-anchor="end" font-size="11" fill="#B32A21" font-weight="600">+ RAIL (RED STRIPE) = 3V3</text>
+
+  <!-- XIAO GND/3V3 to rails: build these first -->
+  <path d="M610 240 H700 V30" fill="none" stroke="#1B1F24" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="700" cy="30" r="5" fill="#1B1F24"/>
+  <path d="M610 290 H722 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="722" cy="56" r="5" fill="#D8342A"/>
+  <text x="655" y="232" text-anchor="middle" font-size="10.5" fill="#1B1F24" font-weight="600">① GND → − rail</text>
+  <text x="666" y="308" text-anchor="middle" font-size="10.5" fill="#B32A21" font-weight="600">② 3V3 → + rail</text>
+
+  <!-- XIAO -->
+  <rect x="490" y="120" width="60" height="28" rx="5" fill="#A9B1B9" stroke="#6E7780"/>
+  <text x="520" y="113" text-anchor="middle" font-size="11" fill="#1B1F24" font-weight="600">USB-C</text>
+  <rect x="430" y="140" width="180" height="405" rx="12" fill="#22272E"/>
+  <text x="520" y="516" text-anchor="middle" font-size="12" fill="#F3F5F7" font-weight="600">XIAO nRF52840</text>
+  <text x="520" y="532" text-anchor="middle" font-size="10" fill="#AEB6BF">Sense · top view</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.5">
+    <circle cx="430" cy="190" r="7"/><circle cx="430" cy="240" r="7"/><circle cx="430" cy="290" r="7"/><circle cx="430" cy="340" r="7"/><circle cx="430" cy="390" r="7"/><circle cx="430" cy="440" r="7"/><circle cx="430" cy="490" r="7"/>
+    <circle cx="610" cy="190" r="7"/><circle cx="610" cy="240" r="7"/><circle cx="610" cy="290" r="7"/><circle cx="610" cy="340" r="7"/><circle cx="610" cy="390" r="7"/><circle cx="610" cy="440" r="7"/><circle cx="610" cy="490" r="7"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#F3F5F7">
+    <text x="446" y="189">D0</text><text x="446" y="239">D1</text><text x="446" y="289">D2</text><text x="446" y="339">D3</text><text x="446" y="389">D4</text><text x="446" y="439">D5</text><text x="446" y="489">D6</text>
+    <text x="594" y="189" text-anchor="end">5V</text><text x="594" y="239" text-anchor="end">GND</text><text x="594" y="289" text-anchor="end">3V3</text><text x="594" y="339" text-anchor="end">D10</text><text x="594" y="389" text-anchor="end">D9</text><text x="594" y="439" text-anchor="end">D8</text><text x="594" y="489" text-anchor="end">D7</text>
+  </g>
+  <g font-size="10" fill="#AEB6BF">
+    <text x="446" y="203">A0</text><text x="446" y="253">A1</text><text x="446" y="303">A2</text><text x="446" y="353">A3</text><text x="446" y="403">SDA</text><text x="446" y="453">SCL</text>
+    <text x="594" y="203" text-anchor="end">leave empty</text><text x="594" y="253" text-anchor="end">ground</text><text x="594" y="303" text-anchor="end">3.3 V</text>
+    <text x="594" y="353" text-anchor="end">amp LRC</text><text x="594" y="403" text-anchor="end">amp BCLK</text><text x="594" y="453" text-anchor="end">amp DIN</text>
+  </g>
+
+  <!-- FSR strip -->
+  <rect x="110" y="110" width="60" height="262" rx="10" fill="#2E3136" stroke="#1B1F24"/>
+  <rect x="120" y="122" width="40" height="210" rx="6" fill="#3F4750"/>
+  <rect x="126" y="130" width="28" height="194" rx="4" fill="#4A5563" stroke="#5C6876" stroke-dasharray="3 3"/>
+  <text x="140" y="232" text-anchor="middle" font-size="9.5" fill="#C9D1D9" transform="rotate(-90 140 232)">active area · press anywhere</text>
+  <rect x="118" y="372" width="44" height="18" rx="2" fill="#B8BEC6" stroke="#8A9199"/>
+  <line x1="128" y1="390" x2="128" y2="400" stroke="#8A9199" stroke-width="2.5"/>
+  <line x1="152" y1="390" x2="152" y2="400" stroke="#8A9199" stroke-width="2.5"/>
+  <circle cx="128" cy="400" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="152" cy="400" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <text x="140" y="100" text-anchor="middle" font-size="12" font-weight="600" fill="#1B1F24">FSR strip</text>
+  <text x="196" y="392" font-size="10.5" fill="#5A6470">two tail pins</text>
+  <text x="196" y="405" font-size="10.5" fill="#5A6470">(either way round)</text>
+
+  <!-- pin L -> + rail -->
+  <path d="M128 400 V440 H60 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="60" cy="56" r="5" fill="#D8342A"/>
+  <text x="82" y="250" font-size="10.5" fill="#B32A21" font-weight="600" transform="rotate(-90 82 250)">③ FSR pin → + rail (3.3 V)</text>
+
+  <!-- pin R -> junction -->
+  <path d="M152 400 V430 H300 V300" fill="none" stroke="#6E7780" stroke-width="4.5" stroke-linejoin="round"/>
+  <text x="226" y="446" text-anchor="middle" font-size="10.5" fill="#4E5761" font-weight="600">④ other FSR pin → junction row</text>
+
+  <!-- junction -->
+  <circle cx="300" cy="300" r="7" fill="#F3F5F7" stroke="#1B1F24" stroke-width="2.5"/>
+  <text x="288" y="305" text-anchor="end" font-size="10.5" fill="#1B1F24" font-weight="600">junction row</text>
+  <text x="288" y="318" text-anchor="end" font-size="10" fill="#5A6470">3 things in one row</text>
+
+  <!-- junction -> D0 -->
+  <path d="M300 300 H390 V190 H430" fill="none" stroke="#E5B800" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="430" cy="190" r="5" fill="#E5B800"/>
+  <text x="345" y="292" font-size="10" fill="#8F6B00" font-weight="600" text-anchor="middle">⑤ yellow → D0</text>
+
+  <!-- resistor junction -> - rail -->
+  <line x1="300" y1="300" x2="300" y2="222" stroke="#6E7780" stroke-width="3"/>
+  <rect x="288" y="150" width="24" height="72" rx="5" fill="#E8D8B0" stroke="#9A8A5C"/>
+  <rect x="288" y="160" width="24" height="6" fill="#7A4A1E"/>
+  <rect x="288" y="171" width="24" height="6" fill="#111"/>
+  <rect x="288" y="182" width="24" height="6" fill="#E07A1F"/>
+  <rect x="288" y="204" width="24" height="6" fill="#C9A227"/>
+  <line x1="300" y1="150" x2="300" y2="30" stroke="#1B1F24" stroke-width="3"/>
+  <circle cx="300" cy="30" r="5" fill="#1B1F24"/>
+  <text x="320" y="166" font-size="10.5" fill="#1B1F24" font-weight="600">⑥ 10 kΩ → − rail</text>
+  <text x="320" y="182" font-size="10" fill="#7A4A1E">brown</text><text x="355" y="182" font-size="10" fill="#111">· black</text>
+  <text x="320" y="196" font-size="10" fill="#B85E10">· orange</text><text x="368" y="196" font-size="10" fill="#8F6B00">· gold</text>
+
+  <!-- legend -->
+  <g font-size="11" fill="#1B1F24">
+    <use href="#gnd" x="470" y="0" transform="translate(-460 545)"/>
+    <text x="30" y="556">= to the − rail (GND)</text>
+  </g>
+</svg>
+    </div>
+    <figcaption>The XIAO seen from above, USB-C up, straddling the breadboard. The numbers are the order to wire in. The junction is one breadboard row that holds three things: the FSR's second pin, the yellow signal jumper to D0, and one leg of the 10 kΩ resistor. The resistor's other leg goes to the − rail.</figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="tab-h">
+  <h2 id="tab-h">Every wire</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>#</th><th>From</th><th>Colour</th><th>To</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td class="lab">①</td><td><span class="pin">GND</span><span class="sub">XIAO right edge, 2nd pin down</span></td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>− rail<span class="sub">blue stripe</span></td><td>Ground for the whole board</td></tr>
+      <tr><td class="lab">②</td><td><span class="pin">3V3</span><span class="sub">XIAO right edge, 3rd pin down</span></td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>+ rail<span class="sub">red stripe</span></td><td>3.3 V for the whole board</td></tr>
+      <tr><td class="lab">③</td><td><span class="lab">FSR pin A</span></td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>+ rail</td><td>Top of the divider</td></tr>
+      <tr><td class="lab">④</td><td><span class="lab">FSR pin B</span></td><td><span class="sw"><i style="background:#6E7780"></i>grey / any</span></td><td>junction row</td><td>Middle of the divider</td></tr>
+      <tr><td class="lab">⑤</td><td>junction row</td><td><span class="sw"><i style="background:#E5B800"></i>yellow</span></td><td><span class="pin">D0</span><span class="sub">left edge, top pin · A0 · P0.02</span></td><td>The force signal</td></tr>
+      <tr><td class="lab">⑥</td><td>junction row</td><td><span class="sw"><i style="background:#E8D8B0;box-shadow:inset 0 0 0 1px #9A8A5C"></i>10 kΩ resistor</span></td><td>− rail</td><td>Pull-down. Sets the rest reading near 0.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Bands on a 10 kΩ, 4-band resistor: <b>brown · black · orange</b> then gold or silver for tolerance. Brown-black-<i>red</i> is 1 kΩ (too small: rest is fine but a hard press barely moves). Brown-black-<i>yellow</i> is 100 kΩ (rest sits around 85). Anything with a <i>green</i> third band is a megohm and the rest reading lands mid-scale.</p>
+</section>
+
+<section aria-labelledby="do-h">
+  <h2 id="do-h">Do it</h2>
+  <ol class="steps">
+    <li><span><b>Unplug USB</b> from the XIAO.</span></li>
+    <li><span>Seat the XIAO across the breadboard's centre channel, USB-C at the top, so its two pin rows land in separate row groups.</span></li>
+    <li><span><b>XIAO GND → − rail</b>, <b>XIAO 3V3 → + rail</b>. Wires ① and ②. These stay for the pulse sensor and the amp.</span></li>
+    <li><span>Push the FSR's two tail pins into two <b>separate</b> breadboard rows, a few rows away from the XIAO. Let the strip lie flat on the desk. Nothing on top of it, nothing bending it.</span></li>
+    <li><span>Red jumper from <b>one FSR pin's row</b> to the <b>+ rail</b>. Wire ③.</span></li>
+    <li><span>Pick an empty row to be the <b>junction</b>. Jumper from the <b>other FSR pin's row</b> to it. Wire ④.</span></li>
+    <li><span><b>Yellow</b> jumper from the junction to <span class="pin">D0</span>. Wire ⑤.</span></li>
+    <li><span><b>10 kΩ resistor</b>: one leg in the junction row, the other in the <b>− rail</b>. Wire ⑥. Read the bands first: brown, black, orange.</span></li>
+    <li><span>Plug USB back in. Hands off the strip. Open the dashboard and press <b>Re-measure rest</b>.</span></li>
+  </ol>
+</section>
+
+<div class="warn">
+  <b>Why it read ~230 at rest last time, and how to tell which cause it is.</b> With a 10 kΩ pull-down and an untouched FSR (over 1 MΩ), D0 sits at about 0.03 V, which is <b>under 10 counts</b>. A rest reading of 230 counts is 0.8 V, which means the strip was behaving like a 30 kΩ resistor: <b>something was already pressing it.</b> Common culprits: the strip taped down under tension, clamped in a clip, bent at the tail, or lying on a rough edge. <br><br>
+  Quick sort: <b>lift the strip fully off the desk</b> and hold it by the tail only. If the rest reading drops under 20, it was preload. If it stays high with the strip in free air, it is the resistor value: pull it and read the bands. If it reads near 500 with the strip <i>disconnected</i>, D0 is floating, which means the junction row isn't the row D0 is in.
+</div>
+
+<section aria-labelledby="see-h">
+  <h2 id="see-h">What you'll see</h2>
+  <div class="checks">
+    <div class="c"><span class="n">1</span><span class="t"><b>Hands off: under 20 counts, steady.</b> <span>The dashboard's "reads near zero at rest" test passes below 20 and "quiet at rest" wants a standard deviation of 3 counts or less. A wobble at rest is usually a loose junction-row jumper.</span></span></div>
+    <div class="c"><span class="n">2</span><span class="t"><b>A fingertip: 200 to 400. A thumb, hard: 600 and up.</b> <span>The curve is steep at first and flattens as you press harder. That's the divider, not a fault; the glove threshold logic works on the steep part.</span></span></div>
+    <div class="c"><span class="n">3</span><span class="t"><b>Let go: back near zero within a second.</b> <span>If it drifts down slowly over several seconds, the strip is still being held by something (tape, an edge, a bend).</span></span></div>
+    <div class="c"><span class="n">4</span><span class="t"><b>Twenty equal presses, peaks within 10 %.</b> <span>The "20 presses, same peak" test. FSRs are consistent for the same contact area; a moving fingertip is not, so press the same spot the same way.</span></span></div>
+    <div class="c"><span class="n">5</span><span class="t"><b>100 samples per second.</b> <span>The sample-rate test flags anything off 95 to 105. Off-rate here means the board is stalled, not a wiring issue.</span></span></div>
+  </div>
+</section>
+
+<div class="pass">
+  <h2>Test it the moment it's wired</h2>
+  <p>The bench dashboard at <code>http://localhost:8787</code> shows the live force trace with all five pressure tests. If it's not open, double-click <code>Bench 3 Dashboard.command</code> in <code>~/Documents/Arduino/fsr_live/</code>. Then wire the pulse sensor (its own page) and the amp + LRA (also its own page). All three share the rails you just built.</p>
+</div>
+
+</div>

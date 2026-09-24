@@ -1,0 +1,475 @@
+<title>Amulet FSR Junction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#E8EBEF;
+  --surface:#FFFFFF;
+  --surface-2:#F2F4F7;
+  --ink:#191D23;
+  --ink-soft:#5B6472;
+  --ink-faint:#8A93A1;
+  --rule:#CBD2DB;
+  --copper:#B0673C;
+  --copper-soft:#EADCD1;
+  --w3v3:#C0322B;
+  --wgnd:#2F343B;
+  --wsig:#B8860B;
+  --board:#D8CBAE;
+  --board-edge:#B8A87F;
+  --strip:#C98A5E;
+  --good:#2E7D5B;
+  --warn:#A8601B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#14171B;
+    --surface:#1C2026;
+    --surface-2:#23282F;
+    --ink:#E6E9EE;
+    --ink-soft:#A3ACB9;
+    --ink-faint:#737D8B;
+    --rule:#333A44;
+    --copper:#D98E5F;
+    --copper-soft:#3A2A20;
+    --w3v3:#E9615A;
+    --wgnd:#AEB6C1;
+    --wsig:#E0B341;
+    --board:#3A342A;
+    --board-edge:#544B3B;
+    --strip:#8A5A38;
+    --good:#5FBF93;
+    --warn:#D69B4A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14171B;
+  --surface:#1C2026;
+  --surface-2:#23282F;
+  --ink:#E6E9EE;
+  --ink-soft:#A3ACB9;
+  --ink-faint:#737D8B;
+  --rule:#333A44;
+  --copper:#D98E5F;
+  --copper-soft:#3A2A20;
+  --w3v3:#E9615A;
+  --wgnd:#AEB6C1;
+  --wsig:#E0B341;
+  --board:#3A342A;
+  --board-edge:#544B3B;
+  --strip:#8A5A38;
+  --good:#5FBF93;
+  --warn:#D69B4A;
+}
+
+body{
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"Source Sans 3",system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  padding-inline:20px;
+  padding-block:0;
+}
+.wrap{max-width:760px;margin:0 auto;padding-block:40px 64px;}
+
+h1{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:700;
+  font-size:clamp(28px,6vw,40px);
+  line-height:1.1;
+  letter-spacing:-.02em;
+  margin:0 0 12px;
+  text-wrap:balance;
+}
+h2{
+  font-family:Archivo,system-ui,sans-serif;
+  font-weight:600;
+  font-size:clamp(19px,3.6vw,23px);
+  letter-spacing:-.01em;
+  margin:0 0 14px;
+  text-wrap:balance;
+}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:11.5px;
+  font-weight:500;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--copper);
+  margin:0 0 10px;
+}
+.lede{
+  font-size:clamp(17px,2.6vw,19px);
+  color:var(--ink-soft);
+  margin:0 0 8px;
+  max-width:60ch;
+}
+p{margin:0 0 14px;max-width:65ch;}
+section{margin-top:44px;}
+strong{font-weight:600;}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em;}
+code{background:var(--surface-2);padding:1px 5px;border-radius:3px;}
+
+hr{border:0;border-top:1px solid var(--rule);margin:40px 0 0;}
+
+figure{margin:0 0 8px;}
+figure.card{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-radius:8px;
+  padding:22px 18px 16px;
+}
+figcaption{
+  font-size:14px;
+  color:var(--ink-soft);
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid var(--rule);
+  max-width:62ch;
+}
+svg{display:block;max-width:100%;height:auto;margin:0 auto;}
+
+/* SVG paint classes — theme-aware via tokens */
+.s-3v3{stroke:var(--w3v3);}
+.s-gnd{stroke:var(--wgnd);}
+.s-sig{stroke:var(--wsig);}
+.s-ink{stroke:var(--ink);}
+.s-soft{stroke:var(--ink-faint);}
+.s-cop{stroke:var(--copper);}
+.f-none{fill:none;}
+.f-surf{fill:var(--surface);}
+.f-surf2{fill:var(--surface-2);}
+.f-cop{fill:var(--copper);}
+.f-copsoft{fill:var(--copper-soft);}
+.f-board{fill:var(--board);}
+.f-strip{fill:var(--strip);}
+.f-gnd{fill:var(--wgnd);}
+.f-sig{fill:var(--wsig);}
+.f-3v3{fill:var(--w3v3);}
+.f-ink{fill:var(--ink);}
+.lbl{fill:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+.lbl-s{fill:var(--ink-soft);font-family:"Source Sans 3",sans-serif;font-size:12.5px;}
+.lbl-cop{fill:var(--copper);font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;}
+.w2{stroke-width:2;}
+.w2-5{stroke-width:2.5;}
+.w3{stroke-width:3;}
+
+.scroller{overflow-x:auto;}
+.scroller svg{min-width:580px;}
+
+.trio{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  margin-bottom:8px;
+}
+@media (max-width:640px){.trio{grid-template-columns:1fr;}}
+.trio figure{
+  background:var(--surface);
+  border:1px solid var(--rule);
+  border-radius:8px;
+  padding:14px 12px 12px;
+  margin:0;
+}
+.trio h3{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin:0 0 8px;
+}
+.trio figcaption{font-size:13px;margin-top:10px;padding-top:9px;}
+
+.claim{
+  border-left:3px solid var(--copper);
+  background:var(--copper-soft);
+  padding:14px 16px;
+  border-radius:0 6px 6px 0;
+  margin:22px 0;
+  font-size:16.5px;
+}
+.claim p{margin:0;max-width:60ch;}
+
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;}
+ol.steps li{
+  counter-increment:s;
+  position:relative;
+  padding-left:42px;
+  margin-bottom:16px;
+  max-width:62ch;
+}
+ol.steps li::before{
+  content:counter(s);
+  position:absolute;left:0;top:1px;
+  width:26px;height:26px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:var(--surface);
+  border:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;
+  color:var(--copper);
+  font-weight:600;
+}
+
+table{border-collapse:collapse;width:100%;font-size:15px;}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:500;
+}
+td.num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ok{color:var(--good);font-weight:600;}
+.bad{color:var(--warn);font-weight:600;}
+
+.legend{
+  display:flex;flex-wrap:wrap;gap:8px 20px;
+  font-size:13.5px;color:var(--ink-soft);
+  margin:16px 0 0;padding:0;list-style:none;
+}
+.legend li{display:flex;align-items:center;gap:7px;}
+.swatch{width:20px;height:3px;border-radius:2px;flex:none;}
+
+.foot{
+  margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);
+  font-size:13.5px;color:var(--ink-faint);
+}
+</style>
+
+<div class="wrap">
+
+<p class="eyebrow">Amulet XPL · force channel</p>
+<h1>The FSR junction</h1>
+<p class="lede">Three conductors have to meet at one point. Where you physically make that point is up to you — the circuit does not change.</p>
+
+<div class="claim">
+<p>A <strong>junction</strong> is not a component. It is just a place where wires are all touching each other, so they are all at the same voltage. The 10&nbsp;kΩ does not have to live on the sensor's leg. It only has to reach <em>that point</em> at one end and ground at the other.</p>
+</div>
+
+<section>
+<p class="eyebrow">First — the circuit</p>
+<h2>What the three wires are doing</h2>
+<p>The FSR is a resistor that falls from over a megohm to a few kilohms when you press it. On its own that tells the XIAO nothing, because the XIAO reads voltage, not resistance. Putting a fixed 10&nbsp;kΩ underneath it turns the pair into a divider, and the voltage at the point between them moves when you press.</p>
+
+<figure class="card">
+<svg viewBox="0 0 470 396" role="img" aria-label="Voltage divider: 3.3 volts through the FSR down to a junction point, then through a fixed 10 kilohm resistor to ground, with pin D0 tapping the junction.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="f-sig"/>
+    </marker>
+  </defs>
+
+  <!-- 3V3 rail -->
+  <line x1="108" y1="44" x2="192" y2="44" class="s-3v3 w3"/>
+  <text x="150" y="30" class="lbl f-3v3" text-anchor="middle">3V3</text>
+  <line x1="150" y1="44" x2="150" y2="84" class="s-3v3 w2-5"/>
+
+  <!-- FSR -->
+  <rect x="108" y="84" width="84" height="52" rx="4" class="f-surf2 s-ink w2"/>
+  <text x="150" y="115" class="lbl" text-anchor="middle">FSR</text>
+  <text x="206" y="105" class="lbl-s">&gt; 1 MΩ at rest</text>
+  <text x="206" y="123" class="lbl-s">a few kΩ pressed</text>
+
+  <!-- to node -->
+  <line x1="150" y1="136" x2="150" y2="202" class="s-sig w2-5"/>
+
+  <!-- node -->
+  <circle cx="150" cy="202" r="8" class="f-cop"/>
+  <text x="132" y="199" class="lbl-cop" text-anchor="end">JUNCTION</text>
+  <text x="132" y="215" class="lbl-s" text-anchor="end">one point</text>
+
+  <!-- branch to D0 -->
+  <line x1="150" y1="202" x2="392" y2="202" class="s-sig w2-5" marker-end="url(#ar)"/>
+  <text x="330" y="190" class="lbl f-sig" text-anchor="middle">to D0</text>
+
+  <!-- to resistor -->
+  <line x1="150" y1="202" x2="150" y2="252" class="s-gnd w2-5"/>
+
+  <!-- 10k -->
+  <rect x="108" y="252" width="84" height="52" rx="4" class="f-surf2 s-ink w2"/>
+  <text x="150" y="283" class="lbl" text-anchor="middle">10 kΩ</text>
+  <text x="206" y="277" class="lbl-s">fixed</text>
+  <text x="206" y="295" class="lbl-s">brown-black-orange</text>
+
+  <!-- to ground -->
+  <line x1="150" y1="304" x2="150" y2="344" class="s-gnd w2-5"/>
+  <line x1="120" y1="344" x2="180" y2="344" class="s-gnd w3"/>
+  <line x1="130" y1="354" x2="170" y2="354" class="s-gnd w2-5"/>
+  <line x1="140" y1="364" x2="160" y2="364" class="s-gnd w2"/>
+  <text x="150" y="384" class="lbl" text-anchor="middle">GND</text>
+</svg>
+<figcaption>Press the strip and its resistance falls, so the junction is pulled closer to 3V3 and the reading rises. Let go and the 10&nbsp;kΩ drags the junction back down to near zero — which is why your bench notes say rest sits under 20 counts.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="eyebrow">The part that is confusing</p>
+<h2>The same junction, three ways</h2>
+<p>All three of these are the drawing above. The FSR lead, the resistor leg and the D0 lead meet; the only thing that changes is <em>what they meet on</em>.</p>
+
+<div class="trio">
+
+<figure>
+<h3>On the bench</h3>
+<svg viewBox="0 0 230 190" role="img" aria-label="A breadboard row with three leads pushed into the same row of holes.">
+  <rect x="18" y="82" width="194" height="34" rx="6" class="f-copsoft s-cop w2"/>
+  <circle cx="44" cy="99" r="4.5" class="f-surf s-soft w2"/>
+  <circle cx="79" cy="99" r="4.5" class="f-surf s-soft w2"/>
+  <circle cx="114" cy="99" r="4.5" class="f-surf s-soft w2"/>
+  <circle cx="149" cy="99" r="4.5" class="f-surf s-soft w2"/>
+  <circle cx="184" cy="99" r="4.5" class="f-surf s-soft w2"/>
+  <line x1="79" y1="99" x2="79" y2="40" class="s-sig w2-5"/>
+  <text x="79" y="30" class="lbl-s" text-anchor="middle">FSR B</text>
+  <line x1="149" y1="99" x2="149" y2="40" class="s-sig w2-5"/>
+  <text x="149" y="30" class="lbl-s" text-anchor="middle">D0</text>
+  <line x1="114" y1="99" x2="114" y2="156" class="s-gnd w2-5"/>
+  <rect x="103" y="122" width="22" height="26" rx="3" class="f-surf2 s-ink w2"/>
+  <text x="114" y="176" class="lbl-s" text-anchor="middle">10 kΩ ↓ GND</text>
+</svg>
+<figcaption>One breadboard row. Its metal clip is the junction.</figcaption>
+</figure>
+
+<figure>
+<h3>Harness guide</h3>
+<svg viewBox="0 0 230 190" role="img" aria-label="The FSR tail with the resistor and signal wire soldered directly onto its leg under heat-shrink.">
+  <rect x="10" y="90" width="72" height="18" rx="3" class="f-surf2 s-soft w2"/>
+  <text x="46" y="80" class="lbl-s" text-anchor="middle">FSR tail</text>
+  <rect x="74" y="66" width="86" height="66" rx="8" class="f-copsoft s-cop w2" opacity=".55"/>
+  <circle cx="98" cy="99" r="7" class="f-cop"/>
+  <line x1="98" y1="99" x2="98" y2="150" class="s-gnd w2-5"/>
+  <rect x="87" y="112" width="22" height="26" rx="3" class="f-surf2 s-ink w2"/>
+  <line x1="98" y1="99" x2="200" y2="99" class="s-sig w2-5"/>
+  <text x="180" y="88" class="lbl-s" text-anchor="middle">D0</text>
+  <text x="117" y="52" class="lbl-s">heat-shrink</text>
+  <text x="98" y="170" class="lbl-s" text-anchor="middle">GND</text>
+</svg>
+<figcaption>The solder blob on the sensor's own leg is the junction. This is the one you want to avoid.</figcaption>
+</figure>
+
+<figure>
+<h3>Build this</h3>
+<svg viewBox="0 0 230 190" role="img" aria-label="A stripboard row with the FSR lead, the D0 lead and one resistor leg in three holes of the same copper strip.">
+  <rect x="14" y="76" width="202" height="46" rx="4" class="f-board s-soft w2"/>
+  <rect x="14" y="86" width="202" height="26" class="f-strip" opacity=".75"/>
+  <circle cx="54" cy="99" r="4.5" class="f-surf s-ink w2"/>
+  <circle cx="104" cy="99" r="4.5" class="f-surf s-ink w2"/>
+  <circle cx="164" cy="99" r="4.5" class="f-surf s-ink w2"/>
+  <line x1="54" y1="99" x2="54" y2="44" class="s-sig w2-5"/>
+  <text x="54" y="34" class="lbl-s" text-anchor="middle">FSR B</text>
+  <line x1="104" y1="99" x2="104" y2="44" class="s-sig w2-5"/>
+  <text x="104" y="34" class="lbl-s" text-anchor="middle">D0</text>
+  <line x1="164" y1="99" x2="164" y2="156" class="s-gnd w2-5"/>
+  <rect x="153" y="118" width="22" height="26" rx="3" class="f-surf2 s-ink w2"/>
+  <text x="164" y="176" class="lbl-s" text-anchor="middle">10 kΩ ↓ GND</text>
+</svg>
+<figcaption>One copper strip. The strip itself is the junction — no iron near the sensor.</figcaption>
+</figure>
+
+</div>
+<p style="font-size:14px;color:var(--ink-soft);max-width:62ch;">Identical circuits. Nothing about the reading changes between them, which is why the bench numbers still apply to the soldered build.</p>
+</section>
+
+<section>
+<p class="eyebrow">The build drawing</p>
+<h2>Three rows, not two</h2>
+<p>Your harness spec calls for a stripboard scrap of two rows — a 3V3 rail and a GND rail. Cut it one row taller and give the third row to the junction.</p>
+
+<figure class="card">
+<div class="scroller">
+<svg viewBox="0 0 660 392" role="img" aria-label="Top view of a three-row stripboard scrap: a 3V3 row, a GND row, and a junction row, with the 10 kilohm resistor bridging the junction row to the GND row.">
+  <defs>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="f-ink"/>
+    </marker>
+  </defs>
+
+  <!-- board -->
+  <rect x="42" y="86" width="576" height="196" rx="5" class="f-board s-soft w2"/>
+
+  <!-- strips -->
+  <rect x="42" y="98" width="576" height="42" class="f-strip" opacity=".45"/>
+  <rect x="42" y="154" width="576" height="42" class="f-strip" opacity=".45"/>
+  <rect x="42" y="210" width="576" height="42" class="f-strip" opacity=".8"/>
+
+  <text x="58" y="124" class="lbl f-3v3">3V3</text>
+  <text x="58" y="180" class="lbl">GND</text>
+  <text x="58" y="236" class="lbl-cop">JUNCTION</text>
+
+  <!-- holes -->
+  <circle cx="200" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="260" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="320" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="380" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="440" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="500" cy="119" r="5" class="f-surf s-ink w2"/><circle cx="560" cy="119" r="5" class="f-surf s-ink w2"/>
+  <circle cx="200" cy="175" r="5" class="f-surf s-ink w2"/><circle cx="260" cy="175" r="5" class="f-surf s-ink w2"/><circle cx="320" cy="175" r="5" class="f-surf s-ink w2"/><circle cx="380" cy="175" r="5" class="f-surf s-ink w2"/><circle cx="500" cy="175" r="5" class="f-surf s-ink w2"/><circle cx="560" cy="175" r="5" class="f-surf s-ink w2"/>
+  <circle cx="200" cy="231" r="5" class="f-surf s-ink w2"/><circle cx="320" cy="231" r="5" class="f-surf s-ink w2"/><circle cx="380" cy="231" r="5" class="f-surf s-ink w2"/><circle cx="500" cy="231" r="5" class="f-surf s-ink w2"/><circle cx="560" cy="231" r="5" class="f-surf s-ink w2"/>
+
+  <!-- resistor bridging JUNCTION -> GND at x=440 -->
+  <line x1="440" y1="231" x2="440" y2="216" class="s-gnd w2-5"/>
+  <line x1="440" y1="190" x2="440" y2="175" class="s-gnd w2-5"/>
+  <rect x="427" y="188" width="26" height="30" rx="4" class="f-surf2 s-ink w2"/>
+  <circle cx="440" cy="231" r="5.5" class="f-gnd"/>
+  <circle cx="440" cy="175" r="5.5" class="f-gnd"/>
+  <text x="470" y="200" class="lbl">10 kΩ</text>
+  <text x="470" y="218" class="lbl-s">brown-black-orange</text>
+
+  <!-- junction leads exiting downward -->
+  <circle cx="260" cy="231" r="5.5" class="f-sig"/>
+  <line x1="260" y1="231" x2="260" y2="312" class="s-sig w2-5"/>
+  <text x="260" y="332" class="lbl-s" text-anchor="middle">from FSR pin B</text>
+
+  <circle cx="140" cy="231" r="5.5" class="f-sig"/>
+  <line x1="140" y1="231" x2="140" y2="312" class="s-sig w2-5"/>
+  <text x="140" y="332" class="lbl-s" text-anchor="middle">to D0 — keep short</text>
+
+  <!-- strip direction -->
+  <line x1="200" y1="362" x2="420" y2="362" class="s-ink w2" marker-end="url(#ar2)" stroke-dasharray="5 4"/>
+  <text x="188" y="366" class="lbl-s" text-anchor="end">copper runs</text>
+</svg>
+</div>
+<figcaption>The junction row holds exactly three things: the lead in from FSR pin B, the lead out to D0, and one leg of the 10&nbsp;kΩ. The resistor's other leg drops into the GND row — it lies flat across the two rows, both legs in holes, nothing inline and nothing to heat-shrink.</figcaption>
+</figure>
+
+<ul class="legend">
+  <li><span class="swatch" style="background:var(--w3v3)"></span> 3V3 — XIAO 3V3 in, FSR pin A and pulse + out</li>
+  <li><span class="swatch" style="background:var(--wgnd)"></span> GND — XIAO GND in, pulse −, amp, button, resistor</li>
+  <li><span class="swatch" style="background:var(--wsig)"></span> Junction — FSR pin B, D0, resistor leg</li>
+</ul>
+
+<p style="margin-top:20px;"><strong>One thing to confirm before you solder:</strong> the copper strips must run <em>along</em> the rows, in the direction of the dashed arrow. If your scrap's strips run the other way, each row is broken into separate islands and none of this works. Turn the piece ninety degrees.</p>
+</section>
+
+<section>
+<p class="eyebrow">Order of work</p>
+<h2>Build it in this order</h2>
+<ol class="steps">
+  <li><strong>Cut the scrap three rows tall.</strong> Confirm strip direction first, then dry-fit it where it will sit next to the XIAO.</li>
+  <li><strong>Fit the 10&nbsp;kΩ first, while the board is empty.</strong> One leg into a junction-row hole, the other into the GND row directly above it. Read the bands before you solder: brown, black, orange. Bend the legs over on the back, solder, trim.</li>
+  <li><strong>Run the GND and 3V3 rails</strong> from the XIAO as your harness spec already has them. Nothing about those two rows changes.</li>
+  <li><strong>Land the FSR pin B lead</strong> in a junction-row hole. The sensor end is a 2-pin 0.1&nbsp;in tail — slip a female Dupont housing onto it rather than soldering the strip, and the sensor stays replaceable.</li>
+  <li><strong>Run one short lead from the junction row to D0.</strong> One wire on the pad, in and out in under two seconds. Route it clear of the D8/D9/D10 amp wires — the junction sits at 10&nbsp;kΩ to ground and will pick up their switching.</li>
+  <li><strong>Check before power.</strong> Resistance from the junction row to the GND row should read 10&nbsp;kΩ with the sensor unplugged. If it reads zero, a leg is in the wrong hole or the strips run the wrong way.</li>
+</ol>
+</section>
+
+<section>
+<p class="eyebrow">Verify</p>
+<h2>What the dashboard should show</h2>
+<p>Flash <code>bench3_live</code> and watch the second field of the <code>S</code> line — <code>S,&lt;ms&gt;,&lt;fsr&gt;,&lt;pulse&gt;,&lt;thresh&gt;</code>, 10-bit, so 0–1023.</p>
+<table>
+<thead><tr><th>Reading</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td class="num ok">&lt; 20 at rest, 600+ on a hard press</td><td>Correct. This matches the bench.</td></tr>
+<tr><td class="num bad">0 always</td><td>D0 is tied straight to ground — the resistor leg missed the junction row and went into GND, so both its legs are on the same strip.</td></tr>
+<tr><td class="num bad">~1023 always</td><td>The resistor is open, or its lower leg never reached the GND row.</td></tr>
+<tr><td class="num bad">~85 at rest</td><td>That's a 100&nbsp;kΩ — brown-black-<em>yellow</em>. Wrong third band.</td></tr>
+<tr><td class="num bad">Mid-scale at rest, unresponsive</td><td>Megohm resistor (green third band), or the FSR tail isn't seated in its housing.</td></tr>
+</tbody>
+</table>
+</section>
+
+<p class="foot">Amulet XPL · force channel · supersedes joints 5–7 of the soldered-harness guide. The divider values, pin assignment and expected counts are unchanged from <span class="mono">amulet_wiring_FSR-strip</span>.</p>
+
+</div>

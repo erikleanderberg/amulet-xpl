@@ -1,0 +1,234 @@
+<title>Amulet Haptic Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#EBEEF1;
+  --surface:#FFFFFF;
+  --surface-2:#F1F4F7;
+  --ink:#171B21;
+  --ink-soft:#586273;
+  --ink-faint:#8891A0;
+  --rule:#C9D1DA;
+  --accent:#1F6F8B;
+  --accent-soft:#DCE9EE;
+  --ok:#2C7A57;
+  --bad:#B03A2E;
+  --wait:#A06A12;
+  --wire-a:#1F6F8B;
+  --wire-dead:#A9B2BD;
+  --board:#D6CDB4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#121519; --surface:#1A1E24; --surface-2:#222831;
+    --ink:#E5E9EF; --ink-soft:#A0AAB8; --ink-faint:#6F7987;
+    --rule:#313945; --accent:#55B4D4; --accent-soft:#16323D;
+    --ok:#5CC08D; --bad:#E8776A; --wait:#DFAD52;
+    --wire-a:#55B4D4; --wire-dead:#4A5563; --board:#3B3529;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121519; --surface:#1A1E24; --surface-2:#222831;
+  --ink:#E5E9EF; --ink-soft:#A0AAB8; --ink-faint:#6F7987;
+  --rule:#313945; --accent:#55B4D4; --accent-soft:#16323D;
+  --ok:#5CC08D; --bad:#E8776A; --wait:#DFAD52;
+  --wire-a:#55B4D4; --wire-dead:#4A5563; --board:#3B3529;
+}
+
+body{background:var(--ground);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0;}
+.wrap{max-width:780px;margin:0 auto;padding-block:40px 64px;}
+h1{font-family:Archivo,system-ui,sans-serif;font-weight:700;font-size:clamp(28px,6vw,40px);line-height:1.1;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance;}
+h2{font-family:Archivo,system-ui,sans-serif;font-weight:600;font-size:clamp(19px,3.6vw,23px);letter-spacing:-.01em;margin:0 0 14px;text-wrap:balance;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px;}
+.lede{font-size:clamp(17px,2.6vw,19px);color:var(--ink-soft);margin:0 0 8px;max-width:60ch;}
+p{margin:0 0 14px;max-width:66ch;}
+section{margin-top:44px;}
+code{font-family:"IBM Plex Mono",monospace;font-size:.9em;background:var(--surface-2);padding:1px 5px;border-radius:3px;}
+.mono{font-family:"IBM Plex Mono",monospace;}
+
+figure{margin:0 0 8px;}
+figure.card{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:22px 18px 16px;}
+figcaption{font-size:14px;color:var(--ink-soft);margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);max-width:64ch;}
+svg{display:block;max-width:100%;height:auto;margin:0 auto;}
+.scroller{overflow-x:auto;}
+.scroller svg{min-width:600px;}
+
+.s-a{stroke:var(--wire-a);}
+.s-dead{stroke:var(--wire-dead);}
+.s-ink{stroke:var(--ink);}
+.s-faint{stroke:var(--ink-faint);}
+.s-bad{stroke:var(--bad);}
+.f-none{fill:none;}
+.f-surf{fill:var(--surface);}
+.f-surf2{fill:var(--surface-2);}
+.f-a{fill:var(--wire-a);}
+.f-dead{fill:var(--wire-dead);}
+.f-ink{fill:var(--ink);}
+.f-board{fill:var(--board);}
+.f-bad{fill:var(--bad);}
+.lbl{fill:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+.lbl-s{fill:var(--ink-soft);font-family:"Source Sans 3",sans-serif;font-size:12.5px;}
+.lbl-d{fill:var(--ink-faint);font-family:"IBM Plex Mono",monospace;font-size:12.5px;}
+.lbl-bad{fill:var(--bad);font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;}
+.w2{stroke-width:2;} .w2-5{stroke-width:2.5;} .w3{stroke-width:3;}
+
+.ladder{list-style:none;margin:0;padding:0;}
+.ladder li{display:flex;gap:14px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--rule);}
+.ladder li:last-child{border-bottom:0;}
+.mark{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;margin-top:2px;font-family:"IBM Plex Mono",monospace;}
+.mark.y{background:var(--ok);color:#fff;}
+.mark.n{background:var(--bad);color:#fff;}
+.ladder .what{font-weight:600;}
+.ladder .why{color:var(--ink-soft);font-size:14.5px;}
+
+.callout{border-left:3px solid var(--bad);background:var(--surface);padding:14px 16px;border-radius:0 6px 6px 0;margin:22px 0;}
+.callout p{margin:0;}
+.callout.note{border-left-color:var(--accent);}
+
+table{border-collapse:collapse;width:100%;font-size:15px;}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;}
+td.k{font-family:"IBM Plex Mono",monospace;white-space:nowrap;font-weight:600;color:var(--accent);}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;}
+ol.steps li{counter-increment:s;position:relative;padding-left:42px;margin-bottom:16px;max-width:63ch;}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--surface);border:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--accent);font-weight:600;}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+
+<p class="eyebrow">Amulet XPL · bench · 23 Sep 2026</p>
+<h1>Why the LRA is silent</h1>
+<p class="lede">Two independent faults stacked on top of each other, and a stale bridge hid both. Neither one is a broken board.</p>
+
+<div class="callout">
+<p><strong>Current state:</strong> the XIAO enumerates and runs, but no new firmware has reached it. The <span class="mono">XIAO-SENSE</span> bootloader drive has not mounted once, so every flash attempt had nothing to write to.</p>
+</div>
+
+<section>
+<p class="eyebrow">Fault one</p>
+<h2>The flashed sketch drives the wrong three pins</h2>
+<p>The last thing uploaded was <span class="mono">~/Downloads/max98357a_xiao_nrf52840</span>, a standalone amp test. It routes I²S to D1&nbsp;/&nbsp;D2&nbsp;/&nbsp;D3. Your amp is soldered to D8&nbsp;/&nbsp;D9&nbsp;/&nbsp;D10. Even a perfect upload would have left the LRA dead still — the clocks come out on pins with nothing attached.</p>
+
+<figure class="card">
+<div class="scroller">
+<svg viewBox="0 0 640 330" role="img" aria-label="The downloaded sketch drives I2S on pins D1, D2 and D3, which have nothing connected, while the amp is wired to D8, D9 and D10, which that sketch never drives.">
+  <defs>
+    <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-a"/></marker>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-dead"/></marker>
+  </defs>
+
+  <rect x="30" y="72" width="150" height="196" rx="6" class="f-surf2 s-ink w2"/>
+  <text x="105" y="60" class="lbl" text-anchor="middle">XIAO nRF52840</text>
+
+  <text x="46" y="104" class="lbl-d">D1</text><text x="46" y="128" class="lbl-d">D2</text><text x="46" y="152" class="lbl-d">D3</text>
+  <text x="46" y="206" class="lbl">D8</text><text x="46" y="230" class="lbl">D9</text><text x="46" y="254" class="lbl">D10</text>
+
+  <line x1="96" y1="100" x2="240" y2="100" class="s-dead w2" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+  <line x1="96" y1="124" x2="240" y2="124" class="s-dead w2" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+  <line x1="96" y1="148" x2="240" y2="148" class="s-dead w2" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+  <text x="252" y="118" class="lbl-bad">nothing connected</text>
+  <text x="252" y="136" class="lbl-s">what the sketch drives</text>
+
+  <line x1="106" y1="202" x2="420" y2="202" class="s-a w2-5" marker-end="url(#a1)"/>
+  <line x1="106" y1="226" x2="420" y2="226" class="s-a w2-5" marker-end="url(#a1)"/>
+  <line x1="106" y1="250" x2="420" y2="250" class="s-a w2-5" marker-end="url(#a1)"/>
+  <text x="262" y="194" class="lbl-s" text-anchor="middle">DIN · BCLK · LRC</text>
+
+  <rect x="424" y="180" width="118" height="92" rx="6" class="f-surf2 s-ink w2"/>
+  <text x="483" y="214" class="lbl" text-anchor="middle">MAX98357A</text>
+  <text x="483" y="234" class="lbl-s" text-anchor="middle">Vin ← battery</text>
+
+  <line x1="542" y1="226" x2="592" y2="226" class="s-a w2-5"/>
+  <circle cx="606" cy="226" r="15" class="f-surf s-ink w2"/>
+  <text x="606" y="231" class="lbl" text-anchor="middle">◉</text>
+  <text x="606" y="262" class="lbl-s" text-anchor="middle">LRA</text>
+
+  <text x="105" y="300" class="lbl-s" text-anchor="middle">solid = soldered</text>
+  <text x="330" y="300" class="lbl-s" text-anchor="middle">dashed = driven but unwired</text>
+</svg>
+</div>
+<figcaption>The amp test sketch and your harness disagree about which pins carry I²S. <span class="mono">bench3_live</span> is the firmware that matches the wiring you actually built.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="eyebrow">Fault two</p>
+<h2>Nothing is reaching the chip</h2>
+<p>Every flash route needs the board in its UF2 bootloader. It never got there. <code>arduino-cli upload</code> races the re-enumeration, and the 1200-baud touch resets a crashed app straight back into itself rather than into DFU — <span class="mono">adafruit-nrfutil</span> answered with <em>"Target is not in DFU mode."</em></p>
+
+<figure class="card">
+<h2 style="font-size:15px;margin-bottom:6px;">What the board proved, step by step</h2>
+<ul class="ladder">
+  <li><span class="mark y">✓</span><span><span class="what">USB enumerates</span><br><span class="why"><span class="mono">0x2886 / 0x8045</span>, vendor "Arduino" — an application image, not the bootloader.</span></span></li>
+  <li><span class="mark y">✓</span><span><span class="what">MCU is alive</span><br><span class="why">Obeys the 1200-baud touch: drops off USB for 3 s, re-enumerates. Dead chips don't do that.</span></span></li>
+  <li><span class="mark y">✓</span><span><span class="what">Supply is stable</span><br><span class="why">Port present on every sample across 6 s. No brownout, no reset loop.</span></span></li>
+  <li><span class="mark n">✗</span><span><span class="what">Not running bench3_live</span><br><span class="why">That firmware streams 100 lines/s and advertises <span class="mono">Amulet-XPL</span>. Six seconds of silence; BLE scan clean.</span></span></li>
+  <li><span class="mark n">✗</span><span><span class="what">Not running the amp sketch either</span><br><span class="why">It replies to <em>any</em> line, even junk, with its usage string. Valid commands, invalid commands, both line endings — nothing.</span></span></li>
+  <li><span class="mark n">✗</span><span><span class="what">Bootloader never mounted</span><br><span class="why">No <span class="mono">XIAO-SENSE</span> volume at any point, so no flash could land.</span></span></li>
+</ul>
+<figcaption>A running application that answers no known command set is a crashed or partial image — consistent with an upload that never completed.</figcaption>
+</figure>
+
+<div class="callout note">
+<p><strong>What hid it:</strong> a bench bridge left running since <strong>21 Sep</strong> kept reporting <span class="mono">#status,connected</span> — a two-day-old claim about a port that had re-enumerated underneath it. A silent board looked like a connected one.</p>
+</div>
+</section>
+
+<section>
+<p class="eyebrow">The way out</p>
+<h2>Forcing the bootloader</h2>
+<ol class="steps">
+  <li><strong>Disconnect the LiPo.</strong> RESET does not cut power while a cell is attached, so a wedged app never gets a true power cycle — and an unfused cell on the BAT pads is the same hazard that took the last two boards.</li>
+  <li><strong>Leave USB-C plugged in.</strong> That is what the drive appears on.</li>
+  <li><strong>Double-tap RESET — two firm presses about 300 ms apart.</strong> Roughly a double-click rhythm. Too slow reads as two resets, too fast as one. Three or four attempts is normal.</li>
+  <li><strong>Watch for a drive called <span class="mono">XIAO-SENSE</span>.</strong> That is the whole signal that it worked.</li>
+</ol>
+
+<figure class="card">
+<svg viewBox="0 0 560 168" role="img" aria-label="Timing diagram: two reset presses about 300 milliseconds apart enter the bootloader; a single press is only a reset.">
+  <line x1="40" y1="64" x2="520" y2="64" class="s-faint w2"/>
+  <rect x="120" y="44" width="16" height="40" rx="3" class="f-a"/>
+  <rect x="216" y="44" width="16" height="40" rx="3" class="f-a"/>
+  <line x1="136" y1="104" x2="216" y2="104" class="s-ink w2"/>
+  <line x1="136" y1="98" x2="136" y2="110" class="s-ink w2"/>
+  <line x1="216" y1="98" x2="216" y2="110" class="s-ink w2"/>
+  <text x="176" y="126" class="lbl" text-anchor="middle">~300 ms</text>
+  <text x="176" y="32" class="lbl-s" text-anchor="middle">press · press</text>
+  <text x="300" y="70" class="lbl-s">→ bootloader, drive mounts</text>
+  <rect x="120" y="136" width="16" height="22" rx="3" class="f-dead"/>
+  <text x="160" y="152" class="lbl-s">one press → plain reset, no drive</text>
+</svg>
+<figcaption>The bootloader looks for a second reset inside a short window. Miss it in either direction and you get an ordinary reset.</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="eyebrow">Once it flashes</p>
+<h2>Driving the LRA</h2>
+<p><span class="mono">bench3_live</span> streams telemetry immediately and advertises as <span class="mono">Amulet-XPL</span>, so you will know within a second that it took. Commands are single characters over USB serial or the bridge's <code>/cmd</code>.</p>
+<table>
+<thead><tr><th>Key</th><th>Does</th></tr></thead>
+<tbody>
+<tr><td class="k">b</td><td>Single tap, 150 ms. No cooldown. <strong>Start here.</strong></td></tr>
+<tr><td class="k">t</td><td>Tone at 160 Hz for 3 s</td></tr>
+<tr><td class="k">z</td><td>Buzz toggle — 250 ms on / 250 ms off, 5 min cap</td></tr>
+<tr><td class="k">o</td><td>Continuous hold, 60 s cap (coil heat)</td></tr>
+<tr><td class="k">w / n</td><td>Sweep 40–300 Hz / 120–210 Hz</td></tr>
+<tr><td class="k">s</td><td>Stop everything</td></tr>
+<tr><td class="k">+ / −</td><td>Volume in 0.1 steps</td></tr>
+<tr><td class="k">h</td><td>Status line</td></tr>
+</tbody>
+</table>
+
+<div class="callout note">
+<p><strong>Coil envelope:</strong> 160 Hz is the Drake's resonance, so it moves hardest there and will feel far stronger than the amp sketch's 440 Hz default. Firmware starts at volume 0.60 and enforces <span class="mono">COIL_MAX_VPP 7.0</span>. With Vin on the battery, <span class="mono">SUPPLY_VOLTS 4.2</span> is correct and the 0.83 ceiling is the right one — no rebuild needed.</p>
+</div>
+</section>
+
+<p class="foot">Amulet XPL · haptic channel triage · companion to <span class="mono">amulet_wiring_MAX98357A-Drake-LRA</span> and <span class="mono">amulet_wiring_soldered-harness</span>.</p>
+
+</div>

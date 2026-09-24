@@ -1,0 +1,279 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Amulet Bench Scope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{
+ --bg:#0E1116;--panel:#161B22;--panel2:#1C2230;--rule:#242C38;--rule2:#303A4A;
+ --ink:#E8ECF2;--soft:#8D99AC;--faint:#5C6878;
+ --ppg:#38BDF8;--thr:#F0A93B;--beat:#4ADE80;--btn:#C084FC;--fsr:#64748B;--mic:#FB7185;--bad:#F87171;
+ --grid:#1A212C;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:14px;
+ padding:22px 22px 30px;-webkit-font-smoothing:antialiased}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+h1{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+ color:var(--faint);border:1px solid var(--rule2);padding:3px 9px;border-radius:99px}
+.status{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--soft);margin-left:auto}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 3px #f8717122}
+.dot.on{background:var(--beat);box-shadow:0 0 0 3px #4ade8022}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.card+.card{margin-top:16px}
+.hd{display:flex;align-items:baseline;gap:10px;padding:13px 16px 11px;border-bottom:1px solid var(--rule)}
+.hd h2{font-size:11.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--soft)}
+.hd .pin{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--faint)}
+.hd .rt{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--soft)}
+.body{padding:14px 16px 16px}
+canvas{display:block;width:100%;border-radius:7px;background:#0A0D12}
+.legend{display:flex;gap:16px;margin-top:11px;font-size:11.5px;color:var(--faint);flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:2.5px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--thr) 0 4px,transparent 4px 7px)}
+.lamp{margin:0 16px 14px;border-radius:10px;padding:20px 14px;text-align:center;background:#0A0D12;
+ border:1px solid var(--rule2);transition:background .07s,border-color .07s,color .07s}
+.lamp.on{background:var(--btn);border-color:var(--btn);color:#1A0B26}
+.lamp .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
+.lamp .n{font-family:"IBM Plex Mono",monospace;font-size:38px;font-weight:600;line-height:1.15;margin-top:2px}
+.warn{margin:0 16px 14px;padding:10px 12px;border-radius:8px;background:#2A1A12;border:1px solid #5A3A20;
+ color:#F0B87A;font-size:12.5px;line-height:1.45}
+.rows{padding:2px 16px 14px}
+.r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:8px 0;border-bottom:1px solid var(--rule)}
+.r:last-child{border-bottom:0}
+.r .k{color:var(--soft);font-size:12.5px}
+.r .v{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-variant-numeric:tabular-nums}
+.hero{font-family:"IBM Plex Mono",monospace;font-size:40px;font-weight:600;line-height:1.1;padding:4px 16px 0}
+.hero small{font-size:13px;color:var(--faint);font-weight:400;margin-left:7px}
+.cmds{display:flex;flex-wrap:wrap;gap:7px;padding:4px 16px 16px}
+button{background:var(--panel2);color:var(--ink);border:1px solid var(--rule2);border-radius:7px;
+ padding:8px 12px;font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;transition:.1s}
+button:hover{background:#27303F;border-color:#3D4859}
+button:active{transform:translateY(1px)}
+button.stop{border-color:#5A322E;color:#F5A9A0}
+button.on{background:var(--beat);border-color:var(--beat);color:#062014}
+</style></head><body>
+
+<header>
+ <h1>Amulet Bench Scope</h1>
+ <span class="tag">bench4_live</span>
+ <div class="status"><span id="dot" class="dot"></span><span id="stat">connecting</span>
+ <span class="mono" id="rate" style="color:var(--faint)"></span></div>
+</header>
+
+<div class="wrap">
+ <div>
+  <div class="card">
+   <div class="hd"><h2>PPG</h2><span class="pin">pulse &middot; D1 / A1</span>
+    <span class="rt" id="ppgrt">&mdash;</span></div>
+   <div class="body"><canvas id="ppg"></canvas>
+    <div class="legend"><span><i style="background:var(--ppg)"></i>filtered 0.5\u20135 Hz</span>
+     <span><i class="dash"></i>beat threshold</span>
+     <span id="qual" style="margin-left:auto"></span></div>
+    <canvas id="ppgraw" style="margin-top:10px"></canvas>
+    <div class="legend"><span><i style="background:var(--fsr)"></i>raw ADC, for reference</span></div></div>
+  </div>
+  <div class="card">
+   <div class="hd"><h2>Force strip</h2><span class="pin">FSR &middot; D0 / A0</span>
+    <span class="rt" id="fsrrt">&mdash;</span></div>
+   <div class="body"><canvas id="fsr"></canvas></div>
+  </div>
+  <div class="card">
+   <div class="hd"><h2>Microphone</h2><span class="pin">PDM &middot; internal</span>
+    <span class="rt" id="micrt">off</span></div>
+   <div class="body"><canvas id="mic"></canvas></div>
+  </div>
+ </div>
+
+ <div>
+  <div class="card">
+   <div class="hd"><h2>Button</h2><span class="pin">D2 / P0.28</span></div>
+   <div id="lamp" class="lamp"><div class="lab" id="blab">released</div><div class="n" id="bn">0</div></div>
+   <div id="bwarn" class="warn" style="display:none"></div>
+   <div class="rows"><div class="r"><span class="k">recent edges</span><span class="v" id="bedge">&mdash;</span></div></div>
+  </div>
+
+  <div class="card">
+   <div class="hd"><h2>Heart rate</h2></div>
+   <div class="hero"><span id="bpm">&mdash;</span><small>bpm</small></div>
+   <div class="rows">
+    <div class="r"><span class="k">interbeat</span><span class="v" id="ibi">&mdash;</span></div>
+    <div class="r"><span class="k">beats seen</span><span class="v" id="nb">0</span></div>
+    <div class="r"><span class="k">signal spread</span><span class="v" id="spr">&mdash;</span></div>
+    <div class="r"><span class="k">threshold</span><span class="v" id="thr">&mdash;</span></div>
+   </div>
+  </div>
+
+  <div class="card">
+   <div class="hd"><h2>Voice note</h2><span class="pin">PDM &rarr; whisper.cpp</span>
+    <span class="rt" id="recrt">idle</span></div>
+   <div class="cmds" style="padding-top:12px">
+     <button id="recbtn" onclick="startRec()" style="flex:1;padding:11px">&#9679;&nbsp; Record 3s &amp; transcribe</button>
+   </div>
+   <div id="tbox" style="margin:2px 16px 14px;padding:13px 14px;border-radius:9px;
+        background:#0A0D12;border:1px solid var(--rule2);min-height:62px">
+     <div id="tstat" class="mono" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+          color:var(--ink-faint)">press record</div>
+     <div id="ttext" style="margin-top:7px;font-size:16px;line-height:1.45"></div>
+   </div>
+   <div class="rows"><div class="r"><span class="k">clip</span><span class="v" id="tclip">&mdash;</span></div></div>
+   <div class="cmds"><audio id="tplay" controls style="width:100%;height:32px;display:none"></audio></div>
+  </div>
+
+  <div class="card">
+   <div class="hd"><h2>Battery</h2><span class="pin">BQ25100</span><span class="rt" id="chgstate">&mdash;</span></div>
+   <div style="padding:14px 16px 4px">
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <span class="mono" id="bpct" style="font-size:38px;font-weight:600;line-height:1">&mdash;</span>
+      <span class="mono" style="font-size:15px;color:var(--ink-faint)">%</span>
+      <span class="mono" id="bmv" style="margin-left:auto;font-size:15px;color:var(--ink-soft)">&mdash;</span>
+    </div>
+    <div id="btrack" style="margin-top:11px;height:13px;border-radius:7px;background:#0A0D12;
+         border:1px solid var(--rule2);overflow:hidden">
+      <div id="bfill" style="height:100%;width:0%;border-radius:6px;background:var(--beat);transition:width .4s"></div>
+    </div>
+   </div>
+   <div class="body" style="padding-top:12px"><canvas id="bchart"></canvas></div>
+   <div class="rows">
+    <div class="r"><span class="k">state</span><span class="v" id="bstate">&mdash;</span></div>
+    <div class="r"><span class="k">rate</span><span class="v" id="brate">&mdash;</span></div>
+    <div class="r"><span class="k">time to full</span><span class="v" id="beta">&mdash;</span></div>
+    <div class="r"><span class="k">load sag</span><span class="v" id="bsag">&mdash;</span></div>
+   </div>
+   <div class="cmds"><button id="fastbtn" onclick="cmd('c')">Toggle charge rate</button></div>
+  </div>
+
+  <div class="card">
+   <div class="hd"><h2>Haptics</h2><span class="pin">Drake LRA</span></div>
+   <div class="rows">
+    <div class="r"><span class="k">mode</span><span class="v" id="hap">idle</span></div>
+    <div class="r"><span class="k">volume</span><span class="v" id="vol">&mdash;</span></div>
+    <div class="r"><span class="k">peak out</span><span class="v" id="pk">0</span></div>
+   </div>
+   <div class="cmds">
+    <button onclick="cmd('b')">Tap</button><button onclick="cmd('t')">Tone 3s</button>
+    <button onclick="cmd('z')">LRA on/off</button><button id="mb" onclick="cmd('m')">Mic</button>
+    <button class="stop" onclick="cmd('s')">Stop</button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const CSS=n=>getComputedStyle(document.body).getPropertyValue(n).trim();
+function startRec(){
+  fetch('/record',{method:'POST'});
+  $('ttext').textContent=''; $('tstat').textContent='starting...';
+}
+function cmd(c){fetch('/cmd',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({c})});}
+
+/* proper high-DPI sizing: set once per size change, scale the context, keep CSS height authoritative */
+function fit(cv,cssH){
+ const dpr=window.devicePixelRatio||1, w=cv.clientWidth;
+ if(cv._w!==w||cv._hh!==cssH||cv._d!==dpr){
+   cv.style.height=cssH+'px'; cv.width=Math.round(w*dpr); cv.height=Math.round(cssH*dpr);
+   cv._w=w; cv._hh=cssH; cv._d=dpr;
+ }
+ const x=cv.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return {x,W:w,H:cssH};
+}
+/* eased range so the trace does not jump every frame */
+const R={};
+function range(key,lo,hi){
+ const r=R[key]||(R[key]={lo,hi});
+ const pad=Math.max((hi-lo)*0.15,2); let tl=lo-pad,th=hi+pad;
+ r.lo+= (tl-r.lo)*0.12; r.hi+= (th-r.hi)*0.12;
+ if(r.hi-r.lo<4){const m=(r.hi+r.lo)/2;r.lo=m-2;r.hi=m+2;}
+ return r;
+}
+function plot(cv,key,data,col,opt){
+ opt=opt||{}; const cssH=opt.h||190, {x,W,H}=fit(cv,cssH);
+ x.clearRect(0,0,W,H);
+ if(!data||data.length<2){x.fillStyle=CSS('--faint');x.font='12px "IBM Plex Mono",monospace';
+   x.fillText(opt.empty||'waiting for data',12,H/2);return;}
+ let lo=Math.min(...data),hi=Math.max(...data);
+ if(opt.thr&&opt.thr.length){lo=Math.min(lo,...opt.thr);hi=Math.max(hi,...opt.thr);}
+ if(opt.zero)lo=0;
+ const r=range(key,lo,hi);
+ const sx=i=>i*W/(data.length-1), sy=v=>H-((v-r.lo)/(r.hi-r.lo))*H;
+ x.strokeStyle=CSS('--grid');x.lineWidth=1;
+ for(let g=1;g<4;g++){const y=Math.round(g*H/4)+.5;x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke();}
+ if(opt.thr&&opt.thr.length){
+   x.strokeStyle=CSS('--thr');x.lineWidth=1.3;x.setLineDash([5,5]);x.beginPath();
+   opt.thr.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));x.stroke();x.setLineDash([]);}
+ const g=x.createLinearGradient(0,0,0,H);
+ g.addColorStop(0,col+'33');g.addColorStop(1,col+'00');
+ x.beginPath();data.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));
+ x.lineTo(W,H);x.lineTo(0,H);x.closePath();x.fillStyle=g;x.fill();
+ x.strokeStyle=col;x.lineWidth=1.7;x.lineJoin='round';x.beginPath();
+ data.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));x.stroke();
+ x.fillStyle=col;x.beginPath();x.arc(sx(data.length-1),sy(data[data.length-1]),3,0,7);x.fill();
+ x.fillStyle=CSS('--faint');x.font='10.5px "IBM Plex Mono",monospace';
+ x.fillText(Math.round(r.hi),6,13);x.fillText(Math.round(r.lo),6,H-6);
+}
+let prevSeq=0,prevT=Date.now();
+async function tick(){
+ let d; try{d=await(await fetch('/data')).json()}catch(e){return}
+ $('dot').className='dot'+(d.live?' on':'');
+ $('stat').textContent=d.live?'live':'no data from board';
+ const now=Date.now(); if(now-prevT>900){$('rate').textContent=Math.round((d.seq-prevSeq)/((now-prevT)/1000))+'/s';prevSeq=d.seq;prevT=now;}
+ plot($('ppg'),'filt',d.filt,CSS('--ppg'),{thr:d.fthr,h:180});
+ plot($('ppgraw'),'ppgraw',d.ppg,CSS('--fsr'),{h:80});
+ const q=$('qual'); const amp=(d.amp||0);
+ q.textContent='amplitude '+amp.toFixed(0)+(d.usable?'  \u2713 usable':'  \u2717 too weak');
+ q.style.color=d.usable?CSS('--beat'):CSS('--bad');
+ plot($('fsr'),'fsr',d.fsr,CSS('--fsr'),{h:110,empty:'strip not connected'});
+ plot($('mic'),'mic',d.mic,CSS('--mic'),{h:110,zero:true,empty:'mic off — press Mic'});
+ if(d.ppg.length){const lo=Math.min(...d.ppg),hi=Math.max(...d.ppg);
+  $('ppgrt').textContent=d.ppg[d.ppg.length-1]; $('spr').textContent=(hi-lo)+'  ('+lo+'–'+hi+')';}
+ if(d.fsr.length)$('fsrrt').textContent=d.fsr[d.fsr.length-1];
+ $('micrt').textContent=d.mic.length?'on':'off';
+ $('mb').className=d.mic.length?'on':'';
+ const on=d.btnDown; $('lamp').className='lamp'+(on?' on':'');
+ $('blab').textContent=on?'pressed':'released'; $('bn').textContent=d.btnCount;
+ $('bedge').textContent=d.btn.length?d.btn.slice(-5).map(b=>b.down?'▼':'▲').join(' '):'none yet';
+ const w=$('bwarn');
+ if(on&&d.btnCount<=1){w.style.display='block';
+   w.textContent='D2 reads LOW while nothing is pressed — the switch is permanently shorted. Both wires are on legs from the same internally-joined pair. Move one to a diagonally opposite leg.';}
+ else w.style.display='none';
+ const b=d.beats[d.beats.length-1];
+ $('bpm').textContent=b?b.bpm:'—'; $('ibi').textContent=b?b.ibi+' ms':'—';
+ $('nb').textContent=d.beats.length; $('thr').textContent=d.thr.length?d.thr[d.thr.length-1]:'—';
+ // voice note
+ const R=d.rec||'idle', st=$('tstat'), tx=$('ttext'), btn=$('recbtn');
+ const busy = (R==='recording'||R==='downloading'||R==='transcribing');
+ btn.disabled=busy; btn.style.opacity=busy?0.55:1;
+ $('recrt').textContent=R;
+ const words={idle:'press record',recording:'\u25CF RECORDING \u2014 SPEAK NOW',
+   downloading:'pulling audio off the board...',transcribing:'transcribing...',
+   done:'transcript',error:'error'};
+ st.textContent=words[R]||R;
+ st.style.color = R==='recording'?CSS('--bad'):(R==='done'?CSS('--beat'):CSS('--ink-faint'));
+ if(R==='done'||R==='error'){ tx.textContent=d.transcript||''; }
+ if(d.clip&&d.clip.path){
+   $('tclip').textContent=d.clip.secs+'s  peak '+d.clip.peak+'  rms '+d.clip.rms;
+   const a=$('tplay');
+   if(R==='done'&&a.dataset.p!==d.clip.path){a.dataset.p=d.clip.path;a.src='/voice.wav?'+Date.now();a.style.display='block';}
+ }
+ // battery
+ if(d.mv){
+  $('bpct').textContent=d.pct; $('bmv').textContent=(d.mv/1000).toFixed(3)+' V';
+  const fill=$('bfill'); fill.style.width=Math.max(2,d.pct)+'%';
+  fill.style.background = d.pct<20?CSS('--bad'):(d.pct<45?CSS('--thr'):CSS('--beat'));
+  $('chgstate').textContent = d.chg?'charging':'on battery';
+  $('chgstate').style.color = d.chg?CSS('--beat'):CSS('--ink-soft');
+  $('bstate').textContent = (d.chg?'charging ':'discharging ')+(d.fast?'\u00b7 100 mA fast':'\u00b7 50 mA standard');
+  $('brate').textContent = (d.rate>0?'+':'')+d.rate+' mV/min';
+  $('fastbtn').className = d.fast?'on':'';
+  $('bsag').textContent = d.sag? d.sag+' mV under LRA load':'\u2014';
+  if(d.chg && d.rate>1){ const togo=(4200-d.mv)/d.rate; 
+    $('beta').textContent = togo>0&&togo<600? Math.round(togo)+' min (est)':'\u2014'; }
+  else $('beta').textContent='\u2014';
+  plot($('bchart'),'bat',(d.bv||[]).map(v=>v/1000),CSS('--beat'),{h:80});
+ }
+ $('hap').textContent=d.hap; $('vol').textContent=(d.vol||0).toFixed(2); $('pk').textContent=d.peak;
+}
+setInterval(tick,110); tick(); addEventListener('resize',tick);
+</script></body></html>

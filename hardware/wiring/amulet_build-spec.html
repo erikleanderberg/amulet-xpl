@@ -1,0 +1,545 @@
+<title>Amulet Build Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F6; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2;
+  --accent:#8F1D3D; --pad:#D9A441; --warn:#B4380B; --warn-bg:#FDF1EA; --ok:#18794A; --ok-bg:#EAF6EF;
+  --code-bg:#EEF1F4; --chip-bg:#E9EDF1; --sig:#0E7C86;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+    --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+    --code-bg:#1D2833; --chip-bg:#22303C; --sig:#4FC3CF;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+  --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+  --code-bg:#1D2833; --chip-bg:#22303C; --sig:#4FC3CF;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:36px 80px;display:flex;flex-direction:column;gap:38px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+h2{font-size:28px;font-weight:600}
+h3{font-size:19px;font-weight:600}
+p{margin:0;max-width:70ch}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:1px 5px;border-radius:3px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:12px;background:var(--chip-bg);padding:4px 9px;border-radius:4px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+.plate{background:#ECEEEA;border-radius:12px;border:1px solid #C9CEC6;overflow-x:auto;padding:10px}
+.plate svg{display:block;width:100%;min-width:900px;height:auto}
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{color:var(--muted);font-size:14px;max-width:94ch}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:660px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13.5px}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+tr.grp td{background:var(--code-bg);font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:6px 13px}
+.lab{font-family:var(--mono);font-weight:600;font-size:13px;white-space:nowrap}
+.sub{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
+.mono{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.sw{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-size:13px;font-weight:500}
+.sw i{width:22px;height:7px;border-radius:4px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.ok-t{color:var(--ok);font-weight:700;font-family:var(--mono);font-size:11px}
+.q-t{color:var(--warn);font-weight:700;font-family:var(--mono);font-size:11px}
+.warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:15px 18px;font-size:14px;max-width:none}
+.warn b{color:var(--warn)}
+.ok{background:var(--ok-bg);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent);border-radius:10px;padding:15px 18px;font-size:14px;max-width:none}
+.ok b{color:var(--ok)}
+.note{font-size:13.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;max-width:84ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.card h3{font-size:17px}
+.card p{font-size:13.5px;color:var(--muted)}
+.card p b{color:var(--ink)}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;margin:0}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:11px;max-width:84ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;font-size:14px}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:11.5px;font-weight:600;width:23px;height:23px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Amulet XPL · glove build · full assembly specification</div>
+  <h1>Amulet Build Spec</h1>
+  <p class="lede">Every component, every cable, every solder joint, named and dimensioned. Four zones: a thin wrist module, a palm module, and one sensor on each of two fingers. All cable outside a casing is white 24 AWG two-core; all wiring inside a casing is 22 AWG silicone from the multicolour kit. Written to be handed to another tool as a specification, so nothing is left implicit.</p>
+  <div class="meta">
+    <span>Modules <b>wrist · palm · index · middle</b></span>
+    <span>Exposed cable <b>5 runs · 24 AWG 2-core</b></span>
+    <span>Internal wire <b>22 AWG silicone</b></span>
+    <span>Conductors across a joint <b>9 + 1 spare</b></span>
+    <span>Firmware <b>unchanged</b></span>
+  </div>
+</header>
+
+<div class="warn">
+  <b>Dimensions marked "confirm" are not from your photographs.</b> The six images attached to this request did not
+  reach me, so every figure below is either a manufacturer datasheet value or a calculated one, tagged in the
+  <span class="ok-t">DATASHEET</span> / <span class="q-t">CONFIRM</span> column. Before this document is used to cut an
+  enclosure, measure the six <span class="q-t">CONFIRM</span> rows with calipers and correct them. Everything
+  electrical — nets, pins, joints, cable assignments — is exact and does not depend on the photographs.
+</div>
+
+<section aria-labelledby="bom-h">
+  <h2 id="bom-h">1 · Bill of materials with dimensions</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Ref</th><th>Component</th><th>Part</th><th>Footprint L × W</th><th>Height</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="6">Palm module</td></tr>
+        <tr><td class="lab">MCU1</td><td>Microcontroller<span class="sub">Seeed XIAO nRF52840 Sense</span></td><td class="mono">102010469<br>RS 250-0968</td><td class="mono">21.0 × 17.5 mm</td><td class="mono">3.5 mm<span class="sub">~5 mm over the antenna</span></td><td class="ok-t">DATASHEET</td></tr>
+        <tr><td class="lab">AMP1</td><td>I²S class-D amplifier<span class="sub">Adafruit MAX98357A breakout</span></td><td class="mono">Adafruit 3006<br>Mouser 485-3006</td><td class="mono">17.5 × 15.3 mm</td><td class="mono">2.2 mm<span class="sub">without headers</span></td><td class="ok-t">DATASHEET</td></tr>
+        <tr><td class="lab">LRA1</td><td>Linear resonant actuator<span class="sub">TITAN Drake HF, f₀ 160 Hz</span></td><td class="mono">confirm</td><td class="mono">confirm</td><td class="mono">confirm</td><td class="q-t">CONFIRM</td></tr>
+        <tr class="grp"><td colspan="6">Wrist module</td></tr>
+        <tr><td class="lab">PCB1</td><td>Protoboard<span class="sub">cut to size; 2 copper rails + isolated pads</span></td><td class="mono">≈ 45 × 22 mm<span class="sub">proposed, see §3</span></td><td class="mono">1.6 mm<span class="sub">1.0 mm if available</span></td><td class="q-t">CONFIRM</td></tr>
+        <tr><td class="lab">BT1</td><td>LiPo cell<span class="sub">protected, 3.7 V</span></td><td class="mono">30 × 12 mm<span class="sub">401230, ≈120 mAh</span></td><td class="mono">4.0 mm</td><td class="q-t">CONFIRM</td></tr>
+        <tr><td class="lab">SW1</td><td>Tactile pushbutton<span class="sub">from the kit; 4 legs, 2 pairs</span></td><td class="mono">6.0 × 6.0 mm</td><td class="mono">4.3 mm<span class="sub">plunger height varies 4.3–7.0</span></td><td class="q-t">CONFIRM</td></tr>
+        <tr><td class="lab">SW2</td><td>Slide switch, power<span class="sub">SPDT, in the battery + lead</span></td><td class="mono">≈ 9 × 4 mm</td><td class="mono">≈ 3.5 mm</td><td class="q-t">CONFIRM</td></tr>
+        <tr><td class="lab">R1</td><td>Resistor 10 kΩ<span class="sub">force divider, brown·black·orange</span></td><td class="mono">6.0 × 2.3 mm<span class="sub">axial, ¼ W</span></td><td class="mono">2.3 mm</td><td class="ok-t">DATASHEET</td></tr>
+        <tr class="grp"><td colspan="6">Fingers</td></tr>
+        <tr><td class="lab">FS1</td><td>Flex / force strip<span class="sub">index finger, 2.2″</span></td><td class="mono">73 × 6.4 mm<span class="sub">56 mm active</span></td><td class="mono">0.5 mm</td><td class="ok-t">DATASHEET</td></tr>
+        <tr><td class="lab">PPG1</td><td>Pulse Sensor Amped<span class="sub">middle finger, optical PPG</span></td><td class="mono">15.8 mm ⌀<span class="sub">round PCB</span></td><td class="mono">≈ 3 mm</td><td class="ok-t">DATASHEET</td></tr>
+        <tr class="grp"><td colspan="6">Wire</td></tr>
+        <tr><td class="lab">CAB</td><td>Exposed cable<span class="sub">white PVC jacket, 2 × 0.2 mm² tinned copper</span></td><td class="mono">24 AWG 2-core</td><td class="mono">jacket ≈ 3.5 mm ⌀<span class="sub">core 1.2 mm ⌀, copper 0.50 mm</span></td><td class="q-t">CONFIRM</td></tr>
+        <tr><td class="lab">INT</td><td>Internal wire<span class="sub">multicolour silicone kit</span></td><td class="mono">22 AWG stranded</td><td class="mono">≈ 1.7 mm ⌀<span class="sub">copper 0.64 mm, 0.33 mm²</span></td><td class="ok-t">DATASHEET</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">The flex strip is what the bill of materials actually contains: no force-sensing resistor was ever ordered, and the strip reads 240 to 260 counts flat, which is the flex sensor's 25 to 30 kΩ through the 10 kΩ divider. It is called the force strip throughout because that is what the firmware and dashboard call the channel.</p>
+</section>
+
+<section aria-labelledby="dia-h">
+  <h2 id="dia-h">2 · Assembly diagram</h2>
+  <figure>
+    <div class="plate">
+<svg viewBox="0 0 1000 1010" role="img" aria-label="Full assembly diagram. Four zones stacked vertically: the index finger with the flex strip at top left, the middle finger with the pulse sensor at top right, the palm module in the centre inside a dashed casing outline holding the XIAO, the amplifier and the LRA, and the wrist module at the bottom inside a dashed casing holding the protoboard, battery, pushbutton, 10 kilohm resistor and slide switch. Five jacketed two-core cables run between the zones outside the casings; thin coloured wires run inside them.">
+  <defs>
+    <linearGradient id="jk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBFBF8"/><stop offset="1" stop-color="#DEDED6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ================= zone plates ================= -->
+  <g fill="#E6E9E3" stroke="#C7CCC1" stroke-width="1.5">
+    <rect x="130" y="40" width="235" height="140" rx="14"/>
+    <rect x="620" y="40" width="250" height="140" rx="14"/>
+  </g>
+  <!-- casings: dashed = enclosure wall -->
+  <rect x="150" y="250" width="700" height="430" rx="18" fill="#E6E9E3" stroke="#8F8F86" stroke-width="2.5" stroke-dasharray="9 6"/>
+  <rect x="190" y="740" width="590" height="235" rx="18" fill="#E6E9E3" stroke="#8F8F86" stroke-width="2.5" stroke-dasharray="9 6"/>
+  <g font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" letter-spacing="1.4" fill="#787E76">
+    <text x="142" y="32">INDEX FINGER · flex strip FS1</text>
+    <text x="632" y="32">MIDDLE FINGER · pulse sensor PPG1</text>
+    <text x="300" y="243">PALM MODULE · casing</text>
+    <text x="330" y="733">WRIST MODULE · casing</text>
+  </g>
+
+  <!-- ================= index finger ================= -->
+  <rect x="180" y="58" width="26" height="86" rx="5" fill="#2E3136" stroke="#1B1F24"/>
+  <rect x="186" y="64" width="14" height="66" rx="3" fill="#4A5563" stroke="#5C6876" stroke-dasharray="3 3"/>
+  <text x="193" y="102" text-anchor="middle" font-size="7.5" fill="#C9D1D9" transform="rotate(-90 193 102)">56 mm active</text>
+  <line x1="187" y1="144" x2="187" y2="152" stroke="#8A9199" stroke-width="2"/>
+  <line x1="199" y1="144" x2="199" y2="152" stroke="#8A9199" stroke-width="2"/>
+  <circle cx="187" cy="155" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="199" cy="155" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <text x="222" y="74" font-size="11" fill="#1B1F24" font-weight="700">FS1 flex strip</text>
+  <g font-size="9.5" fill="#5A6470">
+    <text x="222" y="88">73 × 6.4 × 0.5 mm</text>
+    <text x="222" y="101">2 tail pins, no polarity</text>
+    <text x="222" y="114">leg A → 3V3</text>
+    <text x="222" y="127">leg B → force node</text>
+    <text x="222" y="145">glue flat along the finger,</text>
+    <text x="222" y="157">tail pointing at the palm</text>
+  </g>
+
+  <!-- ================= middle finger ================= -->
+  <circle cx="678" cy="96" r="30" fill="#5A1D2E" stroke="#3A1220" stroke-width="1.5"/>
+  <circle cx="678" cy="96" r="9" fill="#3BB273" stroke="#1F6E45"/>
+  <text x="678" y="70" text-anchor="middle" font-size="8" fill="#E9C9D2" font-weight="600">PPG1</text>
+  <circle cx="656" cy="146" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="678" cy="146" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="700" cy="146" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <g font-size="9" fill="#5A6470" text-anchor="middle">
+    <text x="656" y="163">+</text><text x="678" y="163">−</text><text x="700" y="163">S</text>
+  </g>
+  <text x="730" y="74" font-size="11" fill="#1B1F24" font-weight="700">PPG1 Pulse Amped</text>
+  <g font-size="9.5" fill="#5A6470">
+    <text x="730" y="88">15.8 mm ⌀ × 3 mm</text>
+    <text x="730" y="101">LED side to the finger pad</text>
+    <text x="730" y="114">3 pads: + − S</text>
+    <text x="730" y="132">signal takes its own cable,</text>
+    <text x="730" y="144">away from the power pair</text>
+  </g>
+
+  <!-- ================= palm module contents ================= -->
+  <rect x="230" y="330" width="140" height="200" rx="11" fill="#22272E"/>
+  <text x="300" y="498" text-anchor="middle" font-size="10.5" fill="#F3F5F7" font-weight="700">MCU1 · XIAO</text>
+  <text x="300" y="511" text-anchor="middle" font-size="8.5" fill="#AEB6BF">21 × 17.5 × 3.5 mm</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.4">
+    <circle cx="230" cy="360" r="6"/><circle cx="230" cy="385" r="6"/><circle cx="230" cy="410" r="6"/><circle cx="230" cy="435" r="6"/><circle cx="230" cy="460" r="6"/>
+    <circle cx="370" cy="360" r="6"/><circle cx="370" cy="385" r="6"/><circle cx="370" cy="410" r="6"/><circle cx="370" cy="435" r="6"/><circle cx="370" cy="460" r="6"/>
+    <rect x="255" y="526" width="20" height="8" rx="2"/><rect x="315" y="526" width="20" height="8" rx="2"/>
+  </g>
+  <g font-size="10.5" font-weight="700" fill="#F3F5F7">
+    <text x="242" y="364">D0</text><text x="242" y="389">D1</text><text x="242" y="414">D2</text><text x="242" y="439">D3</text><text x="242" y="464">D4</text>
+    <text x="358" y="364" text-anchor="end">5V</text><text x="358" y="389" text-anchor="end">GND</text><text x="358" y="414" text-anchor="end">3V3</text><text x="358" y="439" text-anchor="end">D10</text><text x="358" y="464" text-anchor="end">D9</text>
+  </g>
+  <g font-size="7.5" fill="#8A9199">
+    <text x="266" y="364">force</text><text x="266" y="389">pulse</text><text x="266" y="414">button</text><text x="266" y="439">free</text><text x="266" y="464">free</text>
+  </g>
+  <text x="265" y="548" text-anchor="middle" font-size="8" fill="#1B1F24" font-weight="700">BAT+</text>
+  <text x="325" y="548" text-anchor="middle" font-size="8" fill="#1B1F24" font-weight="700">BAT−</text>
+  <text x="300" y="559" text-anchor="middle" font-size="7.5" fill="#5A6470">underside pads · 1.0 mm</text>
+
+  <rect x="500" y="330" width="165" height="195" rx="9" fill="#2A3A4A" stroke="#1B2530"/>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.4">
+    <circle cx="500" cy="352" r="6"/><circle cx="500" cy="376" r="6"/><circle cx="500" cy="400" r="6"/><circle cx="500" cy="424" r="6"/><circle cx="500" cy="448" r="6"/><circle cx="500" cy="472" r="6"/><circle cx="500" cy="496" r="6"/>
+    <circle cx="540" cy="525" r="6"/><circle cx="600" cy="525" r="6"/>
+  </g>
+  <g font-size="9.5" font-weight="700" fill="#F3F5F7">
+    <text x="556" y="356">Vin</text><text x="556" y="380">SD</text><text x="556" y="404">GND</text><text x="556" y="428">GAIN</text><text x="512" y="452">LRC</text><text x="512" y="476">BCLK</text><text x="512" y="500">DIN</text>
+  </g>
+  <path d="M500 376 H545 V352 H500" fill="none" stroke="#7FDCE3" stroke-width="2" stroke-dasharray="4 3"/>
+  <path d="M500 424 H545 V400 H500" fill="none" stroke="#7FDCE3" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="614" y="452" text-anchor="middle" font-size="8.5" fill="#7FDCE3" font-weight="600">SD→Vin, GAIN→GND:</text>
+  <text x="614" y="464" text-anchor="middle" font-size="8.5" fill="#7FDCE3" font-weight="600">jumpers on the amp</text>
+  <text x="614" y="490" text-anchor="middle" font-size="10" fill="#F3F5F7" font-weight="700">AMP1</text>
+  <text x="614" y="503" text-anchor="middle" font-size="8" fill="#AEB6BF">17.5 × 15.3 × 2.2 mm</text>
+  <text x="614" y="515" text-anchor="middle" font-size="7.5" fill="#AEB6BF">pads in harness order</text>
+
+  <rect x="500" y="560" width="120" height="52" rx="10" fill="#3F4750" stroke="#1B1F24"/>
+  <text x="560" y="583" text-anchor="middle" font-size="10" fill="#F3F5F7" font-weight="700">LRA1 · Drake</text>
+  <text x="560" y="597" text-anchor="middle" font-size="8" fill="#AEB6BF">either way round</text>
+  <path d="M540 525 V560" fill="none" stroke="#6E7780" stroke-width="3"/>
+  <path d="M600 525 V560" fill="none" stroke="#6E7780" stroke-width="3"/>
+
+  <!-- ================= palm internal wiring ================= -->
+  <!-- 3V3 rail y=298 -->
+  <path d="M370 410 H420 V298 M240 298 H600" fill="none" stroke="#D8342A" stroke-width="3"/>
+  <circle cx="420" cy="298" r="4.5" fill="#D8342A"/>
+  <text x="428" y="294" font-size="8.5" fill="#B32A21" font-weight="700">J3 · 3V3</text>
+  <path d="M240 298 V250" fill="none" stroke="#D8342A" stroke-width="3"/>
+  <path d="M600 298 V250" fill="none" stroke="#D8342A" stroke-width="3"/>
+  <!-- GND rail y=314 -->
+  <path d="M370 385 H440 V314 M440 314 H622 V250" fill="none" stroke="#1B1F24" stroke-width="3"/>
+  <path d="M440 330 H480 V400 H500" fill="none" stroke="#1B1F24" stroke-width="3"/>
+  <circle cx="440" cy="330" r="4.5" fill="#1B1F24"/>
+  <text x="448" y="326" font-size="8.5" fill="#4E5761" font-weight="700">J2 · GND</text>
+  <!-- pulse S lane y=266, hops over the two cable-D risers -->
+  <path d="M660 250 V266 H629 q -7 -9 -14 0 H607 q -7 -9 -14 0 H215 V385 H230" fill="none" stroke="#7A2E86" stroke-width="3"/>
+  <!-- force node: one vertical at x=190 -->
+  <path d="M270 680 V670 H190 V310 H240 V250" fill="none" stroke="#E5B800" stroke-width="3"/>
+  <path d="M190 360 H230" fill="none" stroke="#E5B800" stroke-width="3"/>
+  <circle cx="190" cy="360" r="4.5" fill="#E5B800"/>
+  <text x="168" y="344" font-size="8.5" fill="#8F6B00" font-weight="700">J4</text>
+  <text x="158" y="470" font-size="8.5" fill="#8F6B00" font-weight="700" transform="rotate(-90 158 470)">force node</text>
+  <!-- button -->
+  <path d="M292 680 V628 H212 V410 H230" fill="none" stroke="#0E9AA7" stroke-width="3"/>
+  <!-- V+ in, split to BAT+ and amp Vin -->
+  <path d="M580 680 V660 H255 V530 H265" fill="none" stroke="#B3261E" stroke-width="3"/>
+  <circle cx="580" cy="672" r="4.5" fill="#B3261E"/>
+  <text x="530" y="668" font-size="8.5" fill="#B3261E" font-weight="700">J1 · V+</text>
+  <path d="M580 672 H680 V326 H495 V352 H500" fill="none" stroke="#B3261E" stroke-width="3"/>
+  <!-- battery GND in to BAT- -->
+  <path d="M602 680 V608 H325 V530" fill="none" stroke="#1B1F24" stroke-width="3"/>
+  <!-- I2S -->
+  <path d="M370 435 L500 448" fill="none" stroke="#1F8A3A" stroke-width="3"/>
+  <path d="M370 460 L500 472" fill="none" stroke="#2B5BA8" stroke-width="3"/>
+  <path d="M370 485 L500 496" fill="none" stroke="#E07A1F" stroke-width="3"/>
+  <circle cx="370" cy="485" r="6" fill="#D9A441" stroke="#8A6516" stroke-width="1.4"/>
+  <text x="358" y="489" text-anchor="end" font-size="10.5" font-weight="700" fill="#F3F5F7">D8</text>
+  <text x="390" y="512" font-size="8.5" fill="#4E5761" font-weight="700">D10/D9/D8 → LRC/BCLK/DIN</text>
+
+  <!-- ================= exposed cables (jackets) ================= -->
+  <!-- Cable C: palm -> index -->
+  <path d="M240 250 V205 H193 V172" fill="url(#jk)" stroke="#A9AFA4" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M193 172 L187 161" fill="none" stroke="#D8342A" stroke-width="2.5"/>
+  <path d="M193 172 L199 161" fill="none" stroke="#E5B800" stroke-width="2.5"/>
+  <text x="256" y="200" font-size="9" fill="#3A4048" font-weight="700">CABLE C · 2-core</text>
+  <text x="256" y="212" font-size="8.5" fill="#5A6470">3V3 + force node</text>
+
+  <!-- Cable D: palm -> middle (power) -->
+  <path d="M611 250 V214 H667 V168" fill="url(#jk)" stroke="#A9AFA4" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M667 168 L656 152" fill="none" stroke="#D8342A" stroke-width="2.5"/>
+  <path d="M667 168 L678 152" fill="none" stroke="#1B1F24" stroke-width="2.5"/>
+  <text x="600" y="208" text-anchor="end" font-size="9" fill="#3A4048" font-weight="700">CABLE D · 3V3 + GND</text>
+
+  <!-- Cable E: palm -> middle (signal) -->
+  <path d="M660 250 V234 H712 V168" fill="url(#jk)" stroke="#A9AFA4" stroke-width="15" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M712 168 L700 152" fill="none" stroke="#7A2E86" stroke-width="2.5"/>
+  <text x="732" y="228" font-size="9" fill="#3A4048" font-weight="700">CABLE E</text>
+  <text x="732" y="240" font-size="8.5" fill="#5A6470">pulse S + spare</text>
+
+  <!-- Cable B: wrist -> palm (signals) -->
+  <path d="M281 740 V680" fill="url(#jk)" stroke="#A9AFA4" stroke-width="16" stroke-linecap="round"/>
+  <path d="M270 740 V680" fill="none" stroke="#E5B800" stroke-width="2.5"/>
+  <path d="M292 740 V680" fill="none" stroke="#0E9AA7" stroke-width="2.5"/>
+  <text x="196" y="706" font-size="9" fill="#3A4048" font-weight="700">CABLE B · 2-core</text>
+  <text x="196" y="718" font-size="8.5" fill="#5A6470">force node + button</text>
+
+  <!-- Cable A: wrist -> palm (power) -->
+  <path d="M591 740 V680" fill="url(#jk)" stroke="#A9AFA4" stroke-width="16" stroke-linecap="round"/>
+  <path d="M580 740 V680" fill="none" stroke="#B3261E" stroke-width="2.5"/>
+  <path d="M602 740 V680" fill="none" stroke="#1B1F24" stroke-width="2.5"/>
+  <text x="622" y="706" font-size="9" fill="#3A4048" font-weight="700">CABLE A · 2-core</text>
+  <text x="622" y="718" font-size="8.5" fill="#5A6470">switched V+ + battery GND</text>
+
+  <!-- ================= wrist module contents ================= -->
+  <rect x="222" y="772" width="360" height="160" rx="6" fill="#D8C79A" stroke="#9A8A5C"/>
+  <text x="402" y="765" text-anchor="middle" font-size="9.5" fill="#1B1F24" font-weight="700">PCB1 protoboard · ≈45 × 22 mm · 1.6 mm</text>
+  <line x1="452" y1="796" x2="566" y2="796" stroke="#B3261E" stroke-width="3.5"/>
+  <line x1="238" y1="916" x2="566" y2="916" stroke="#1B1F24" stroke-width="3.5"/>
+  <text x="452" y="789" font-size="9" fill="#B3261E" font-weight="700">V+ rail</text>
+  <text x="430" y="931" text-anchor="middle" font-size="9" fill="#1B1F24" font-weight="700">GND rail</text>
+
+  <!-- battery on the board -->
+  <rect x="398" y="812" width="168" height="88" rx="7" fill="#7C8A99" stroke="#4E5A66"/>
+  <text x="482" y="845" text-anchor="middle" font-size="10.5" fill="#F3F5F7" font-weight="700">BT1 · LiPo 401230</text>
+  <text x="482" y="859" text-anchor="middle" font-size="8.5" fill="#E3E9ED">30 × 12 × 4.0 mm · ≈120 mAh</text>
+  <text x="482" y="872" text-anchor="middle" font-size="8.5" fill="#E3E9ED">double-sided tape onto PCB1</text>
+
+  <!-- pushbutton -->
+  <rect x="295" y="824" width="44" height="44" rx="5" fill="#2E3136" stroke="#1B1F24"/>
+  <circle cx="317" cy="846" r="11" fill="#5A6470" stroke="#1B1F24"/><circle cx="317" cy="846" r="6" fill="#8A9199"/>
+  <text x="332" y="898" text-anchor="middle" font-size="9" fill="#1B1F24" font-weight="700">SW1 button</text>
+  <text x="332" y="909" text-anchor="middle" font-size="8" fill="#5A6470">6 × 6 mm · plunger proud</text>
+  <line x1="317" y1="868" x2="317" y2="916" stroke="#1B1F24" stroke-width="2.5"/>
+  <circle cx="317" cy="824" r="4" fill="#F3F5F7" stroke="#1B1F24" stroke-width="2"/>
+  <path d="M317 824 V776 H292 V740" fill="none" stroke="#0E9AA7" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- 10k -->
+  <rect x="248" y="826" width="13" height="40" rx="4" fill="#E8D8B0" stroke="#9A8A5C"/>
+  <rect x="248" y="833" width="13" height="4" fill="#7A4A1E"/><rect x="248" y="841" width="13" height="4" fill="#111"/><rect x="248" y="849" width="13" height="4" fill="#E07A1F"/>
+  <line x1="254" y1="866" x2="254" y2="916" stroke="#6E7780" stroke-width="2.5"/>
+  <circle cx="254" cy="826" r="4" fill="#F3F5F7" stroke="#1B1F24" stroke-width="2"/>
+  <text x="266" y="818" font-size="9" fill="#1B1F24" font-weight="700">R1 · 10 kΩ</text>
+  <text x="254" y="884" text-anchor="middle" font-size="8" fill="#5A6470">→ GND rail</text>
+  <path d="M254 826 V786 H270 V740" fill="none" stroke="#E5B800" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- slide switch -->
+  <rect x="600" y="824" width="52" height="30" rx="4" fill="#B8BEC6" stroke="#8A9199"/>
+  <circle cx="612" cy="839" r="3" fill="#1B1F24"/><circle cx="640" cy="839" r="3" fill="#1B1F24"/>
+  <line x1="612" y1="839" x2="634" y2="830" stroke="#1B1F24" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="626" y="816" text-anchor="middle" font-size="9" fill="#1B1F24" font-weight="700">SW2 power</text>
+  <text x="626" y="870" text-anchor="middle" font-size="8" fill="#5A6470">in the battery + lead</text>
+  <path d="M566 840 H612" fill="none" stroke="#B3261E" stroke-width="3"/>
+  <path d="M640 839 H676 V796 H566" fill="none" stroke="#B3261E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M566 878 V916" fill="none" stroke="#1B1F24" stroke-width="3"/>
+  <text x="614" y="934" font-size="8" fill="#5A6470">BT1 + → SW2 → V+ rail</text>
+  <text x="614" y="950" font-size="8" fill="#5A6470">BT1 − → GND rail direct</text>
+
+  <!-- wrist wiring up to the cables -->
+  <path d="M500 796 V770 H580 V740" fill="none" stroke="#B3261E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M470 916 V948 H700 V762 H602 V740" fill="none" stroke="#1B1F24" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- ================= legend ================= -->
+  <g font-size="9.5" fill="#1B1F24">
+    <text x="862" y="300" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700" letter-spacing="1">NETS</text>
+    <rect x="862" y="316" width="20" height="5" fill="#B3261E"/><text x="888" y="322">switched V+</text>
+    <rect x="862" y="334" width="20" height="5" fill="#D8342A"/><text x="888" y="340">3V3</text>
+    <rect x="862" y="352" width="20" height="5" fill="#1B1F24"/><text x="888" y="358">GND</text>
+    <rect x="862" y="370" width="20" height="5" fill="#E5B800"/><text x="888" y="376">force node</text>
+    <rect x="862" y="388" width="20" height="5" fill="#7A2E86"/><text x="888" y="394">pulse S</text>
+    <rect x="862" y="406" width="20" height="5" fill="#0E9AA7"/><text x="888" y="412">button</text>
+    <rect x="862" y="424" width="20" height="5" fill="#1F8A3A"/><text x="888" y="430">LRC</text>
+    <rect x="862" y="442" width="20" height="5" fill="#2B5BA8"/><text x="888" y="448">BCLK</text>
+    <rect x="862" y="460" width="20" height="5" fill="#E07A1F"/><text x="888" y="466">DIN</text>
+    <text x="862" y="498" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="700" letter-spacing="1">CABLE</text>
+    <path d="M862 516 h22" stroke="#A9AFA4" stroke-width="13" stroke-linecap="round"/><text x="892" y="520">jacketed 2-core,</text>
+    <text x="892" y="532">exposed, 24 AWG</text>
+    <path d="M862 552 h22" stroke="#1B1F24" stroke-width="3"/><text x="892" y="556">bare wire, inside a</text>
+    <text x="892" y="568">casing, 22 AWG</text>
+    <path d="M862 590 h6 q 7 -9 14 0 h6" fill="none" stroke="#1B1F24" stroke-width="2"/><text x="892" y="594">hop: crosses, no joint</text>
+    <circle cx="868" cy="612" r="4.5" fill="#E5B800"/><text x="892" y="616">junction, 3 wires</text>
+    <path d="M862 634 h24" stroke="#8F8F86" stroke-width="2.5" stroke-dasharray="9 6"/><text x="892" y="638">casing wall</text>
+  </g>
+</svg>
+    </div>
+    <figcaption>Right hand, palm up. The dashed outlines are casing walls: anything drawn crossing one is a cable passing through a passage. Thick pale sleeves are the white 24 AWG two-core, with its red and black cores drawn offset inside; thin coloured lines are the 22 AWG silicone inside a casing. Small arcs are crossings, not joints. J1 to J4 are the four three-way junctions inside the palm casing, listed in section 5.</figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="stk-h">
+  <h2 id="stk-h">3 · Module stack-up and thinness</h2>
+  <p>The wrist module is the one that has to be thin. The battery and the button sit <b>side by side</b> on the protoboard, not stacked, so the module's thickness is set by whichever of the two is taller, not by their sum.</p>
+  <div class="cards">
+    <div class="card">
+      <h3>Wrist module thickness</h3>
+      <p><b>Floor 0.8 mm</b> casing base<br><b>+ 1.6 mm</b> PCB1 protoboard<br><b>+ 4.3 mm</b> tallest part on the board: SW1 button, or BT1 at 4.0 mm<br><b>+ 1.0 mm</b> clearance<br><b>+ 0.8 mm</b> lid, with a hole for the plunger<br><b>= 8.5 mm total</b></p>
+      <p>To lose 2 mm: use 1.0 mm protoboard and a 3 mm cell such as a 302030, and let the plunger stand proud through the lid rather than clearing it internally.</p>
+    </div>
+    <div class="card">
+      <h3>Wrist module footprint</h3>
+      <p>Protoboard <b>45 × 22 mm</b> holds, left to right: SW1 button, R1, then BT1 lying on the board with SW2 beyond it. Casing outside dimensions about <b>52 × 28 × 8.5 mm</b> with 1.5 mm walls and rounded corners.</p>
+      <p>Long axis runs <b>along</b> the forearm, not across it. Across is what makes a wrist module feel bulky.</p>
+    </div>
+    <div class="card">
+      <h3>Palm module</h3>
+      <p>MCU1 and AMP1 sit side by side, both flat. Height is set by the XIAO at <b>3.5 mm</b>, or about 5 mm over its antenna end. With a 0.8 mm floor, 1 mm clearance and a 0.8 mm lid that is <b>≈ 7.5 mm</b>.</p>
+      <p>Footprint: 21 + 17.5 mm side by side plus a 3 mm gap and 2 mm margins is about <b>46 × 24 mm</b>. LRA1 sits under or beside them, against the skin.</p>
+    </div>
+    <div class="card">
+      <h3>Cable passages</h3>
+      <p>Each casing needs one passage per cable: <b>2 in the palm floor</b> (cables A and B), <b>3 in the palm lid</b> (C, D, E), <b>2 in the wrist lid</b> (A and B).</p>
+      <p>Size each at <b>4.5 mm</b> for a 3.5 mm jacket, or 4.8 mm if 3D printed. Make them open slots with a C shape so an already-soldered harness drops in sideways. Break every edge.</p>
+    </div>
+  </div>
+  <div class="note">LRA1's dimensions are unknown to me, so the palm figure assumes it is no thicker than the XIAO. A typical coin LRA is 10 mm across and 3.4 mm thick, which would fit. If the Drake is taller, the palm module's height is set by the LRA instead. Measure it.</div>
+</section>
+
+<section aria-labelledby="cab-h">
+  <h2 id="cab-h">4 · Cable schedule — everything outside a casing</h2>
+  <p>Five runs, all the same white 24 AWG two-core. Ten conductors, nine used and one spare. Cut every run 15 to 20 mm longer than the straight-line distance so each one carries a service loop at the joint it crosses.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Cable</th><th>From → to</th><th>Red core</th><th>Black core</th><th>Crosses</th><th>Length</th></tr></thead>
+      <tbody>
+        <tr><td class="lab">CABLE A</td><td>Wrist module → palm module</td><td><span class="sw"><i style="background:#B3261E"></i>switched V+</span></td><td><span class="sw"><i style="background:#1B1F24"></i>battery GND</span></td><td>the wrist</td><td class="mono">≈ 90 mm</td></tr>
+        <tr><td class="lab">CABLE B</td><td>Wrist module → palm module</td><td><span class="sw"><i style="background:#E5B800"></i>force node</span></td><td><span class="sw"><i style="background:#0E9AA7"></i>button node</span></td><td>the wrist</td><td class="mono">≈ 90 mm</td></tr>
+        <tr><td class="lab">CABLE C</td><td>Palm module → index finger</td><td><span class="sw"><i style="background:#D8342A"></i>3V3</span></td><td><span class="sw"><i style="background:#E5B800"></i>force node</span></td><td>2 knuckles</td><td class="mono">≈ 110 mm</td></tr>
+        <tr><td class="lab">CABLE D</td><td>Palm module → middle finger</td><td><span class="sw"><i style="background:#D8342A"></i>3V3</span></td><td><span class="sw"><i style="background:#1B1F24"></i>GND</span></td><td>2 knuckles</td><td class="mono">≈ 120 mm</td></tr>
+        <tr><td class="lab">CABLE E</td><td>Palm module → middle finger</td><td><span class="sw"><i style="background:#7A2E86"></i>pulse S</span></td><td><span class="sw"><i style="background:#9AA6B2"></i>spare, not connected</span></td><td>2 knuckles</td><td class="mono">≈ 120 mm</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="ok">
+    <b>Why the pulse sensor gets two cables instead of one three-conductor run.</b> It needs three conductors and the
+    cable has two, so a second run is unavoidable. Splitting them as power in cable D and signal in cable E rather than
+    three-plus-one is free and it keeps the sensitive analogue signal out of the same jacket as the supply. The spare
+    core in cable E can later become a shield drain, grounded at the palm end only, or a second finger sensor.
+  </div>
+  <div class="note"><b>Mark the jackets.</b> All five cables look identical. Put one band of tape near each end: one band for A, two for B, three for C, and so on. Do it before the first joint is soldered, not after.</div>
+</section>
+
+<section aria-labelledby="jnt-h">
+  <h2 id="jnt-h">5 · Joint schedule — every connection in the build</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>From</th><th>To</th><th>Wire</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="5">Wrist module · inside the casing · 22 AWG silicone or board joints</td></tr>
+        <tr><td class="lab">W1</td><td>BT1 red lead</td><td>SW2 common pin</td><td>cell's own lead</td><td>The cell's factory leads are typically 28 to 30 AWG. Do not lengthen them; move SW2 instead.</td></tr>
+        <tr><td class="lab">W2</td><td>SW2 output pin</td><td>PCB1 V+ rail</td><td class="mono">22 AWG red</td><td>SW2 kills the whole rig, board and amp together.</td></tr>
+        <tr><td class="lab">W3</td><td>BT1 black lead</td><td>PCB1 GND rail</td><td>cell's own lead</td><td></td></tr>
+        <tr><td class="lab">W4</td><td>SW1 leg, pair 1</td><td>PCB1 GND rail</td><td>board joint</td><td>Four legs in two pairs, each pair joined inside the switch. One leg from each pair, or it reads permanently pressed.</td></tr>
+        <tr><td class="lab">W5</td><td>SW1 leg, pair 2</td><td>PCB1 button-node pad</td><td>board joint</td><td>Isolated pad. No pull-up resistor: the firmware uses the internal one, pressed reads LOW.</td></tr>
+        <tr><td class="lab">W6</td><td>R1 leg 1</td><td>PCB1 force-node pad</td><td>board joint</td><td>Isolated pad.</td></tr>
+        <tr><td class="lab">W7</td><td>R1 leg 2</td><td>PCB1 GND rail</td><td>board joint</td><td></td></tr>
+        <tr><td class="lab">W8</td><td>PCB1 V+ rail</td><td>CABLE A red</td><td class="mono">24 AWG core</td><td>Cable A leaves through the wrist lid passage.</td></tr>
+        <tr><td class="lab">W9</td><td>PCB1 GND rail</td><td>CABLE A black</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">W10</td><td>PCB1 force-node pad</td><td>CABLE B red</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">W11</td><td>PCB1 button-node pad</td><td>CABLE B black</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr class="grp"><td colspan="5">Palm module · inside the casing · 22 AWG silicone</td></tr>
+        <tr><td class="lab">P1</td><td>CABLE A red</td><td>J1</td><td class="mono">junction</td><td><b>J1 · V+ junction</b>, three wires: cable A red in, one tail to MCU1 BAT+, one tail to AMP1 Vin. Twist and solder as one lump, heat-shrink.</td></tr>
+        <tr><td class="lab">P2</td><td>J1</td><td>MCU1 BAT+ pad</td><td class="mono">22 AWG red</td><td>Underside pad, 1.0 mm. Tin the pad first.</td></tr>
+        <tr><td class="lab">P3</td><td>J1</td><td>AMP1 Vin</td><td class="mono">22 AWG red</td><td>Never from MCU1 3V3. The LRA's current through that regulator sags every sensor.</td></tr>
+        <tr><td class="lab">P4</td><td>CABLE A black</td><td>MCU1 BAT− pad</td><td class="mono">22 AWG black</td><td></td></tr>
+        <tr><td class="lab">P5</td><td>MCU1 GND pin</td><td>J2</td><td class="mono">22 AWG black</td><td><b>J2 · GND junction</b>, three wires: from MCU1 GND, to AMP1 GND, to cable D black.</td></tr>
+        <tr><td class="lab">P6</td><td>J2</td><td>AMP1 GND</td><td class="mono">22 AWG black</td><td></td></tr>
+        <tr><td class="lab">P7</td><td>J2</td><td>CABLE D black</td><td class="mono">24 AWG core</td><td>Leaves through a lid passage.</td></tr>
+        <tr><td class="lab">P8</td><td>MCU1 3V3 pin</td><td>J3</td><td class="mono">22 AWG red</td><td><b>J3 · 3V3 junction</b>, three wires: from MCU1 3V3, to cable C red, to cable D red.</td></tr>
+        <tr><td class="lab">P9</td><td>J3</td><td>CABLE C red</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">P10</td><td>J3</td><td>CABLE D red</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">P11</td><td>CABLE B red</td><td>J4</td><td class="mono">junction</td><td><b>J4 · force-node junction</b>, three wires: cable B red from the wrist, cable C black up to the finger, one tail to MCU1 D0.</td></tr>
+        <tr><td class="lab">P12</td><td>J4</td><td>MCU1 D0</td><td class="mono">22 AWG yellow</td><td>The divider midpoint. Keep this tail under 30 mm.</td></tr>
+        <tr><td class="lab">P13</td><td>J4</td><td>CABLE C black</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">P14</td><td>CABLE B black</td><td>MCU1 D2</td><td class="mono">22 AWG</td><td>Button. Firmware does not read D2 yet.</td></tr>
+        <tr><td class="lab">P15</td><td>CABLE E red</td><td>MCU1 D1</td><td class="mono">22 AWG purple</td><td>Pulse signal. Route it away from P16 to P18.</td></tr>
+        <tr><td class="lab">P16</td><td>MCU1 D10</td><td>AMP1 LRC</td><td class="mono">22 AWG green</td><td>Keep all three I²S wires the same length, 20 to 30 mm, and bundled.</td></tr>
+        <tr><td class="lab">P17</td><td>MCU1 D9</td><td>AMP1 BCLK</td><td class="mono">22 AWG blue</td><td>1.52 MHz. Short matters here.</td></tr>
+        <tr><td class="lab">P18</td><td>MCU1 D8</td><td>AMP1 DIN</td><td class="mono">22 AWG orange</td><td></td></tr>
+        <tr><td class="lab">P19</td><td>AMP1 SD</td><td>AMP1 Vin</td><td>loop on the amp</td><td>Solder this first, while the amp board is still bare. Floating SD drifts into shutdown.</td></tr>
+        <tr><td class="lab">P20</td><td>AMP1 GAIN</td><td>AMP1 GND</td><td>loop on the amp</td><td>Sets 12 dB. Level is set in software.</td></tr>
+        <tr><td class="lab">P21</td><td>AMP1 OUT+</td><td>LRA1 lead 1</td><td class="mono">22 AWG grey</td><td>Either way round. Neither lead to ground.</td></tr>
+        <tr><td class="lab">P22</td><td>AMP1 OUT−</td><td>LRA1 lead 2</td><td class="mono">22 AWG grey</td><td></td></tr>
+        <tr class="grp"><td colspan="5">Index finger · no casing</td></tr>
+        <tr><td class="lab">I1</td><td>CABLE C red</td><td>FS1 leg A</td><td class="mono">24 AWG core</td><td>No polarity. Heat-shrink each joint separately, then a sleeve over both.</td></tr>
+        <tr><td class="lab">I2</td><td>CABLE C black</td><td>FS1 leg B</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr class="grp"><td colspan="5">Middle finger · no casing</td></tr>
+        <tr><td class="lab">M1</td><td>CABLE D red</td><td>PPG1 +</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">M2</td><td>CABLE D black</td><td>PPG1 −</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">M3</td><td>CABLE E red</td><td>PPG1 S</td><td class="mono">24 AWG core</td><td></td></tr>
+        <tr><td class="lab">M4</td><td>CABLE E black</td><td>not connected</td><td class="mono">spare</td><td>Cut back and heat-shrink the end. Do not leave bare copper on a worn device.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Totals: 11 joints in the wrist module, 22 in the palm module, 6 at the fingers. Four three-way junctions, all inside the palm casing, all heat-shrunk.</p>
+</section>
+
+<section aria-labelledby="net-h">
+  <h2 id="net-h">6 · Netlist</h2>
+  <p>The same information as section 5, as nets. This is the form to hand to another tool.</p>
+<pre>NET  V_BAT_SW   BT1.+ &gt;SW2&gt; PCB1.V+rail · CABLE_A.red · J1 · MCU1.BAT+ · AMP1.Vin
+NET  GND        BT1.− · PCB1.GNDrail · SW1.pair1 · R1.leg2 · CABLE_A.black · MCU1.BAT−
+                MCU1.GND · J2 · AMP1.GND · AMP1.GAIN · CABLE_D.black · PPG1.−
+NET  3V3        MCU1.3V3 · J3 · CABLE_C.red · FS1.legA · CABLE_D.red · PPG1.+
+NET  FORCE      FS1.legB · CABLE_C.black · J4 · CABLE_B.red · PCB1.forcepad · R1.leg1 · MCU1.D0
+NET  PULSE_S    PPG1.S · CABLE_E.red · MCU1.D1
+NET  BUTTON     SW1.pair2 · PCB1.buttonpad · CABLE_B.black · MCU1.D2
+NET  I2S_LRC    MCU1.D10 · AMP1.LRC
+NET  I2S_BCLK   MCU1.D9  · AMP1.BCLK
+NET  I2S_DIN    MCU1.D8  · AMP1.DIN
+NET  AMP_SD     AMP1.SD · AMP1.Vin        (jumper on the amp board)
+NET  LRA_OUT+   AMP1.OUT+ · LRA1.lead1
+NET  LRA_OUT−   AMP1.OUT− · LRA1.lead2
+NET  SPARE      CABLE_E.black            (unterminated both ends)
+
+FREE PINS  MCU1.D3 D4 D5 D6 D7 (D4=SDA, D5=SCL reserved for I2C)
+FIRMWARE   bench3_live · FSR_PIN=A0 · PULSE_PIN=A1 · button D2 not yet read
+           SUPPLY_VOLTS must be 4.2f when AMP1.Vin is on the battery</pre>
+</section>
+
+<section aria-labelledby="ord-h">
+  <h2 id="ord-h">7 · Assembly order</h2>
+  <p>Every stage is testable on the dashboard over USB before the next one goes on. The battery is connected last.</p>
+  <ol class="steps">
+    <li><b>Mark the five cables.</b> Tape bands, one through five, both ends. Cut each to the length in section 4 plus 20 mm.</li>
+    <li><b>AMP1 jumpers.</b> Joints P19 and P20, while the amp board is bare and easy to hold.</li>
+    <li><b>Palm module dry build.</b> MCU1 and AMP1 glued to the casing floor, then P5, P6, P16, P17, P18, P21, P22. Plug in USB. The LRA should buzz from the dashboard switch, and the board should enumerate.</li>
+    <li><b>PCB1.</b> Cut the board, lay the two rails, solder SW1, R1, SW2 and the battery leads: W1 to W7. Meter V+ to GND: open, not shorted.</li>
+    <li><b>Cables A and B.</b> W8 to W11 at the wrist end, then P1 to P4, P11, P12, P14 at the palm end. Leave a service loop at the wrist. Plug in USB: force and button nets are now continuous, and the force channel should read a rest value.</li>
+    <li><b>Cable C and FS1.</b> P9, P13, then I1 and I2. Bend the strip, watch the reading move.</li>
+    <li><b>Cables D and E and PPG1.</b> P7, P10, P15, then M1 to M4. Finger on the sensor, watch for BEATING on the dashboard.</li>
+    <li><b>Close the casings</b>, then connect BT1 with SW2 off. Meter for a short first. Switch on, unplug USB, and the bridge should pick the board up over Bluetooth within eight seconds.</li>
+  </ol>
+  <div class="warn"><b>Before BT1 is connected, three meter checks.</b> V+ rail to GND rail: open. MCU1 BAT+ to BAT−: open. AMP1 Vin to GND: open. A dead short across a lithium cell is the one mistake in this build that damages parts rather than just not working.</div>
+</section>
+
+<section aria-labelledby="fin-h">
+  <h2 id="fin-h">8 · Making it survive being worn</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Service loops</h3>
+      <p>15 to 20 mm of slack in a gentle S wherever a cable crosses the wrist or a knuckle. A cable pulled straight across a joint breaks at the solder joint, usually within a few hundred bends.</p>
+    </div>
+    <div class="card">
+      <h3>Anchor before the joint</h3>
+      <p>Stitch or glue each cable to the fabric within 20 mm of every casing passage and every sensor. The anchor takes the pull. The joint should never feel it.</p>
+    </div>
+    <div class="card">
+      <h3>Route along, not across</h3>
+      <p>Run the finger cables down the <b>side</b> of each finger, not the middle of the back. The side changes length far less when the hand closes, so the cable is not stretched on every grip.</p>
+    </div>
+    <div class="card">
+      <h3>Two gauges, on purpose</h3>
+      <p>24 AWG two-core outside, where the jacket takes the abrasion and the pull. 22 AWG silicone inside, where flexibility and easy stripping matter and nothing rubs. PVC stiffens and cracks with flexing; silicone does not.</p>
+    </div>
+  </div>
+</section>
+
+</div>

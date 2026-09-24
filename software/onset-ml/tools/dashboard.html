@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amulet Bench Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EEF1F4; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2; --grid:#E4E9EE;
+  --accent:#8F6310; --chip-bg:#E9EDF1;
+  --s-fsr:#B07A12; --s-raw:#9AA6B2; --s-pulse:#C2334D; --s-thresh:#8A93A0; --s-hap:#3B6FA0;
+  --ok:#18794A; --ok-bg:#E3F4EA; --crit:#B4380B; --crit-bg:#FBE9E1; --warn:#9A6200; --warn-bg:#FBF1DC; --info:#2D5DA8; --info-bg:#E6EEF9;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743; --grid:#212C37;
+    --accent:#E3B45C; --chip-bg:#22303C;
+    --s-fsr:#E3B45C; --s-raw:#5E6C79; --s-pulse:#F0647C; --s-thresh:#6B7784; --s-hap:#7FA8EE;
+    --ok:#4FD08C; --ok-bg:#12261B; --crit:#FB8A4C; --crit-bg:#2A1A12; --warn:#E9B44C; --warn-bg:#2A2210; --info:#7FA8EE; --info-bg:#16233A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743; --grid:#212C37;
+  --accent:#E3B45C; --chip-bg:#22303C;
+  --s-fsr:#E3B45C; --s-raw:#5E6C79; --s-pulse:#F0647C; --s-thresh:#6B7784; --s-hap:#7FA8EE;
+  --ok:#4FD08C; --ok-bg:#12261B; --crit:#FB8A4C; --crit-bg:#2A1A12; --warn:#E9B44C; --warn-bg:#2A2210; --info:#7FA8EE; --info-bg:#16233A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.5 var(--body);padding-inline:20px;padding-block:18px 40px}
+.wrap{max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.05;text-wrap:balance}
+h1{font-size:30px;font-weight:700;letter-spacing:.01em}
+h2{font-size:24px;font-weight:600}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+button,input{font:inherit}
+button{font-weight:500;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.rec[aria-pressed="true"]{background:var(--crit);border-color:var(--crit);color:#fff}
+.bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
+.bar .id{display:flex;flex-direction:column;gap:4px}
+.bar .ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--chip-bg);color:var(--muted)}
+.pill i{width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill[data-s="live"]{background:var(--ok-bg);color:var(--ok)}
+.pill[data-s="down"]{background:var(--crit-bg);color:var(--crit)}
+.recpath{font-family:var(--mono);font-size:11px;color:var(--muted);max-width:44ch;overflow-wrap:anywhere}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.phead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+.tag{font-family:var(--mono);font-size:11px;color:var(--muted);background:var(--chip-bg);padding:3px 8px;border-radius:4px}
+.readout{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 28px}
+.big{display:flex;flex-direction:column;gap:0}
+.big .v{font-family:var(--display);font-weight:600;font-size:64px;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.big .u{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.big.sm .v{font-size:40px}
+.state{font-family:var(--mono);font-size:12px;font-weight:600;padding:4px 10px;border-radius:4px;background:var(--chip-bg);color:var(--muted);align-self:center}
+.state[data-on="1"]{background:var(--s-fsr);color:#1A1406}
+.state[data-beat="1"]{background:var(--s-pulse);color:#fff}
+canvas{display:block;width:100%;border-radius:8px;background:var(--surface)}
+.chart{display:flex;flex-direction:column;gap:4px}
+.chart .cap{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.key{display:inline-flex;align-items:center;gap:6px}
+.key i{width:14px;height:3px;border-radius:2px;display:inline-block}
+dl.metrics{margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+dl.metrics div{background:var(--surface);padding:9px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+dl.metrics dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+dl.metrics dd{margin:0;font-family:var(--mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tests{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line)}
+.tests h3{margin:12px 0 6px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.t{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 0;border-bottom:1px solid var(--grid);align-items:center}
+.t:last-child{border-bottom:0}
+.t .name{font-weight:600}
+.t .how{grid-column:1;font-size:13px;color:var(--muted)}
+.t .res{grid-column:1;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.t .chip{grid-column:2;grid-row:1 / span 3;align-self:center}
+.t .act{grid-column:1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:4px}
+.t input[type=number]{width:90px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:var(--mono)}
+.chip{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:4px;white-space:nowrap;background:var(--chip-bg);color:var(--muted)}
+.chip[data-s="pass"]{background:var(--ok-bg);color:var(--ok)}
+.chip[data-s="fail"]{background:var(--crit-bg);color:var(--crit)}
+.chip[data-s="warn"]{background:var(--warn-bg);color:var(--warn)}
+.chip[data-s="info"]{background:var(--info-bg);color:var(--info)}
+.chip[data-s="run"]{background:var(--warn-bg);color:var(--warn)}
+.hap{grid-column:1 / -1}
+.hgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px 28px;align-items:start}
+@media (max-width:980px){.hgrid{grid-template-columns:1fr}}
+.hleft{display:flex;flex-direction:column;gap:14px;min-width:0}
+.hbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hbtns .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+button.stop{border-color:var(--crit);color:var(--crit)}
+button.tog[aria-pressed="true"]{background:var(--info);border-color:var(--info);color:#fff}
+button.felt{padding:4px 10px;font-size:12px}
+button.switch{display:inline-flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;border-radius:999px;border:1.5px solid var(--line);background:var(--chip-bg);font-family:var(--mono);font-weight:600;font-size:13px;letter-spacing:.04em}
+button.switch .knob{width:34px;height:20px;border-radius:999px;background:var(--surface);border:1.5px solid var(--line);position:relative;transition:background .15s}
+button.switch .knob::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--muted);transition:transform .15s,background .15s}
+button.switch[aria-checked="true"]{background:var(--s-hap);border-color:var(--s-hap);color:#fff}
+button.switch[aria-checked="true"] .knob{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.6)}
+button.switch[aria-checked="true"] .knob::after{transform:translateX(14px);background:#fff}
+.hero{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin:0 0 18px;padding:14px 18px;border:1.5px solid var(--s-hap);border-radius:10px;background:var(--surface)}
+.hero button.big-sw{font-size:18px;padding:10px 20px 10px 10px;gap:14px}
+.hero button.big-sw .knob{width:54px;height:30px}
+.hero button.big-sw .knob::after{width:20px;height:20px;top:3px;left:3px}
+.hero button.big-sw[aria-checked="true"] .knob::after{transform:translateX(24px)}
+.hero-txt{font-size:14px;color:var(--muted);line-height:1.5}.hero-txt b{color:var(--ink)}
+.hero-peak{font-family:var(--mono);font-size:12px;color:var(--s-hap)}
+@media (prefers-reduced-motion: reduce){button.switch .knob,button.switch .knob::after{transition:none}}
+.state[data-on="1"].hs{background:var(--s-hap);color:#fff}
+.hap .tests{border-top:0}
+.hap .tests h3{margin-top:0}
+.log{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.log ol{margin:0;padding:0;list-style:none;font-family:var(--mono);font-size:12px;color:var(--muted);display:grid;gap:2px;max-height:9.5em;overflow:auto}
+.log b{color:var(--ink);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="bar">
+    <div class="id">
+      <span class="eyebrow">Amulet bench · XIAO nRF52840 Sense · FSR + Pulse Amp + Haptics</span>
+      <h1>Amulet Bench Live</h1>
+    </div>
+    <div class="ctl">
+      <span class="pill" id="conn" data-s="wait"><i></i><span id="connTxt">Connecting to bridge…</span></span>
+      <button type="button" id="rec" class="rec" aria-pressed="false">Record CSV</button>
+      <span class="recpath" id="recPath"></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <button type="button" id="hHold" class="switch big-sw" role="switch" aria-checked="false" aria-label="LRA continuous on or off"><span class="knob"></span><span class="sw-txt">LRA OFF</span></button>
+    <div class="hero-txt">
+      <b>Haptic on / off.</b> Continuous 160 Hz into the LRA until you switch it off (60 s auto-off, press again to restart).
+      <span id="heroPeak" class="hero-peak">amp idle</span> · <a href="#hapCard">all haptic controls ↓</a>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- FSR -->
+    <section class="panel" aria-labelledby="fsr-h">
+      <div class="phead"><h2 id="fsr-h">Force sensor</h2><span class="tag">FSR · D0/A0 · 10 kΩ to GND · 100 Hz</span></div>
+      <div class="readout">
+        <div class="big"><span class="v" id="fVal">—</span><span class="u">counts (0–1023)</span></div>
+        <div class="big sm"><span class="v" id="fDelta">—</span><span class="u">above rest</span></div>
+        <div class="big sm"><span class="v" id="fVolt">—</span><span class="u">volts at D0</span></div>
+        <span class="state" id="fState" data-on="0">AT REST</span>
+      </div>
+      <div class="chart">
+        <canvas id="fChart" height="200" aria-label="FSR reading over the last 10 seconds"></canvas>
+        <div class="cap"><span>last 10 s</span><span><span class="key"><i style="background:var(--s-raw)"></i>raw</span> &nbsp; <span class="key"><i style="background:var(--s-fsr)"></i>smoothed</span> &nbsp; <span class="key"><i style="background:var(--ok)"></i>rest</span></span></div>
+      </div>
+      <dl class="metrics">
+        <div><dt>Rest value</dt><dd id="mBase">—</dd></div>
+        <div><dt>Noise at rest (SD)</dt><dd id="mNoise">—</dd></div>
+        <div><dt>Session peak</dt><dd id="mPeak">—</dd></div>
+        <div><dt>Presses counted</dt><dd id="mPress">0</dd></div>
+        <div><dt>Last press</dt><dd id="mLast">—</dd></div>
+        <div><dt>Sample rate</dt><dd id="mRate">—</dd></div>
+        <div><dt>Board loop · max gap / dropped</dt><dd id="fGap">—</dd></div>
+      </dl>
+      <div class="tests">
+        <h3>Pressure tests</h3>
+        <div class="t"><span class="name">Reads near zero at rest</span><span class="how">Hands off. Pass below 20 counts.</span><span class="res" id="tf1r">—</span><span class="chip" id="tf1">waiting</span>
+          <span class="act"><button type="button" id="zero">Re-measure rest (hands off, 2 s)</button></span></div>
+        <div class="t"><span class="name">Quiet at rest</span><span class="how">Noise while untouched. Pass at SD ≤ 3 counts.</span><span class="res" id="tf2r">—</span><span class="chip" id="tf2">waiting</span></div>
+        <div class="t"><span class="name">Responds to a hard press</span><span class="how">Press as hard as you can. Pass when the peak reaches 600.</span><span class="res" id="tf3r">—</span><span class="chip" id="tf3">waiting</span></div>
+        <div class="t"><span class="name">20 presses, same peak</span><span class="how">Press the same way 20 times. Pass when peaks vary ≤ 10% (CV).</span><span class="res" id="tf4r">0 / 20</span><span class="chip" id="tf4">waiting</span>
+          <span class="act"><button type="button" id="resetPress">Start over</button></span></div>
+        <div class="t"><span class="name">Sampling holds 100 Hz</span><span class="how">Pass at 95–105 samples/s.</span><span class="res" id="tf5r">—</span><span class="chip" id="tf5">waiting</span></div>
+      </div>
+    </section>
+
+    <!-- Pulse -->
+    <section class="panel" aria-labelledby="pl-h">
+      <div class="phead"><h2 id="pl-h">Pulse &amp; HRV</h2><span class="tag">Adafruit 1093 · D1/A1 · 500 Hz</span></div>
+      <div class="readout">
+        <div class="big"><span class="v" id="pBpm" style="color:var(--s-pulse)">—</span><span class="u">bpm</span></div>
+        <div class="big sm"><span class="v" id="pIbi">—</span><span class="u">last IBI (ms)</span></div>
+        <div class="big sm"><span class="v" id="pRmssd">—</span><span class="u">RMSSD (HRV)</span></div>
+        <span class="state" id="pState" data-beat="0">NO FINGER</span>
+      </div>
+      <div class="chart">
+        <canvas id="pChart" height="200" aria-label="Live pulse waveform, last 6 seconds"></canvas>
+        <div class="cap"><span>waveform · last 6 s</span><span><span class="key"><i style="background:var(--s-pulse)"></i>signal</span> &nbsp; <span class="key"><i style="background:var(--s-thresh)"></i>beat threshold</span></span></div>
+      </div>
+      <dl class="metrics">
+        <div><dt>Last beat</dt><dd id="pAge">—</dd></div>
+        <div><dt>Beats counted</dt><dd id="pBeats">0</dd></div>
+        <div><dt>BPM mean ± SD (30 s)</dt><dd id="pMean">—</dd></div>
+        <div><dt>BPM range (session)</dt><dd id="pRange">—</dd></div>
+        <div><dt>Wave amplitude</dt><dd id="pAmp">—</dd></div>
+        <div><dt>Signal at rest</dt><dd id="pIdle">—</dd></div>
+      </dl>
+      <div class="tests">
+        <h3>Pressure tests</h3>
+        <div class="t"><span class="name">Idles mid-range with no finger</span><span class="how">Finger off. Pass when the flat signal sits ~430–520 (≈ half of 3.3 V on this board).</span><span class="res" id="tp1r">—</span><span class="chip" id="tp1">waiting</span></div>
+        <div class="t"><span class="name">Clean waveform under a finger</span><span class="how">Finger still. Pass when the beat-to-beat swing is ≥ 40 counts.</span><span class="res" id="tp2r">—</span><span class="chip" id="tp2">waiting</span></div>
+        <div class="t"><span class="name">Beats detected steadily</span><span class="how">Pass at a plausible, updating 40–180 bpm.</span><span class="res" id="tp3r">—</span><span class="chip" id="tp3">waiting</span></div>
+        <div class="t"><span class="name">BPM stable at rest</span><span class="how">Seated and still. Pass at SD ≤ 5 bpm over 30 s.</span><span class="res" id="tp4r">—</span><span class="chip" id="tp4">waiting</span></div>
+        <div class="t"><span class="name">Matches your own count</span><span class="how">Count your wrist pulse for 60 s and enter it. Pass within ±3 bpm of the 30 s mean.</span><span class="res" id="tp5r">—</span><span class="chip" id="tp5">not run</span>
+          <span class="act"><label for="manual" class="how" style="margin:0">Your count</label><input type="number" id="manual" min="30" max="220" step="1" placeholder="bpm"><button type="button" id="cmp">Compare</button></span></div>
+        <div class="t"><span class="name">HRV is computable</span><span class="how">Needs a run of clean beats. RMSSD is the ms spread of beat-to-beat gaps — the HRV this sensor exists to give.</span><span class="res" id="tp6r">—</span><span class="chip" id="tp6">collecting</span></div>
+      </div>
+    </section>
+
+    <!-- Haptics -->
+    <section class="panel hap" aria-labelledby="hp-h">
+      <div class="phead"><h2 id="hp-h">Haptics</h2><span id="hapCard"></span><span class="tag">MAX98357A · D8 DIN · D9 BCLK · D10 LRC · Drake LRA on the output block</span></div>
+      <div class="hgrid">
+        <div class="hleft">
+          <div class="readout">
+            <div class="big"><span class="v" id="hMode" style="color:var(--s-hap)">—</span><span class="u">amp</span></div>
+            <div class="big sm"><span class="v" id="hHz">—</span><span class="u">Hz</span></div>
+            <div class="big sm"><span class="v" id="hVol">—</span><span class="u">volume (0.1–1.0)</span></div>
+            <div class="big sm"><span class="v" id="hPeak">—</span><span class="u">peak / 32767</span></div>
+            <span class="state hs" id="hState" data-on="0">AMP OFF</span>
+          </div>
+          <div class="hbtns">
+            <span class="lbl">Drive</span>
+            <button type="button" id="hBuzz" class="switch" role="switch" aria-checked="false" aria-label="LRA on or off"><span class="knob"></span><span class="sw-txt">LRA OFF</span></button>
+            <button type="button" id="hTap">Tap · 150 ms</button>
+            <button type="button" id="hTone">Tone 160 Hz · 3 s</button>
+            <button type="button" id="hWide">Wide sweep 40–300 Hz</button>
+            <button type="button" id="hNarrow">Narrow sweep 120–210 Hz</button>
+            <button type="button" id="hStop" class="stop">Stop</button>
+          </div>
+          <p class="how" style="margin:0;color:var(--muted);font-size:12.5px">LRA ON = 250 ms bursts at 160 Hz until you switch it off (5 min cap). If peak is non-zero and nothing moves, the fault is after the XIAO: amp Vin and GND on the rails · SD to the + rail · both coil leads tight in the terminals · D10→LRC, D9→BCLK, D8→DIN in that order.</p>
+          <div class="hbtns">
+            <span class="lbl">Level</span>
+            <button type="button" id="hDown">Vol −</button>
+            <button type="button" id="hUp">Vol +</button>
+            <span class="lbl" style="margin-left:12px">Heart</span>
+            <button type="button" id="hSync" class="tog" aria-pressed="false">Tap on every heartbeat</button>
+          </div>
+          <div class="chart">
+            <canvas id="hChart" height="110" aria-label="Haptic drive level over the last 10 seconds"></canvas>
+            <div class="cap"><span>drive level · % of full scale · last 10 s</span><span>each sweep step is labelled with its Hz</span></div>
+          </div>
+        </div>
+        <div class="tests">
+          <h3>Haptic tests</h3>
+          <div class="t"><span class="name">Amp takes the signal</span><span class="how">Send any drive. Pass when the board reports a non-zero peak within 1.5 s. If it stays 0, the I²S pins or the firmware are wrong — not the wiring to the coil.</span><span class="res" id="th1r">—</span><span class="chip" id="th1">waiting</span></div>
+          <div class="t"><span class="name">Tap is felt</span><span class="how">Hold the LRA between two fingers, press Tap. A tap you cannot feel with the amp driving means amp power, SD, or the coil connection.</span><span class="res" id="th2r">your call</span><span class="chip" id="th2">not run</span>
+            <span class="act"><button type="button" class="felt" data-felt="th2:pass">Felt</button><button type="button" class="felt" data-felt="th2:fail">Not felt</button></span></div>
+          <div class="t"><span class="name">Resonance tone is felt</span><span class="how">Tone 160 Hz for 3 s. Should be clearly stronger than the tap. Back off Vol if it feels hard rather than louder.</span><span class="res" id="th3r">your call</span><span class="chip" id="th3">not run</span>
+            <span class="act"><button type="button" class="felt" data-felt="th3:pass">Felt</button><button type="button" class="felt" data-felt="th3:fail">Not felt</button></span></div>
+          <div class="t"><span class="name">Where is it strongest?</span><span class="how">Run a sweep and press Mark at the step that feels strongest. Datasheet says near 160 Hz. Marks far from that mean the coil is loaded (glued, clamped) or it's a different actuator.</span><span class="res" id="th4r">—</span><span class="chip" id="th4">not run</span>
+            <span class="act"><button type="button" id="hMark">Mark this step</button><button type="button" id="hMarkClr">Clear</button></span></div>
+          <div class="t"><span class="name">Sensors stay quiet while the amp runs</span><span class="how">Automatic. Sample-to-sample noise on the FSR and pulse channels during a drive vs. the second before it. Pass at ≤ 2× baseline. Fail = amp switching noise on the 3.3 V rail: give the amp its own supply or add a bulk cap.</span><span class="res" id="th5r">—</span><span class="chip" id="th5">waiting</span></div>
+          <div class="t"><span class="name">Taps land on every heartbeat</span><span class="how">Finger on the pulse sensor, switch on Tap on every heartbeat. Pass after 10 beats when taps match beats within 10%.</span><span class="res" id="th6r">—</span><span class="chip" id="th6">off</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="log">
+    <span class="eyebrow">Board messages</span>
+    <ol id="log"></ol>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const mean = a => a.reduce((s,x)=>s+x,0)/a.length;
+  const sd = a => { const m=mean(a); return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length); };
+  const chip = (id, s, txt) => { const el=$(id); el.dataset.s=s; el.textContent=txt; };
+
+  // ---------------- FSR ----------------
+  const N = 1000, VPER = 3.6/1023;
+  const f = { raw:new Float32Array(N), sm:new Float32Array(N), head:0, n:0, smooth:null, prev:null,
+    base:null, noise:null, zero:null, pressed:false, peak:0, peaks:[], last:null, max:0,
+    lastSeq:null, cnt:0, rate:null };
+
+  function startZero(){ f.zero = { until: performance.now()+2000, vals: [] }; chip('tf1','run','measuring'); }
+  function onF(seq, raw){
+    if (f.lastSeq !== null && seq < f.lastSeq) f.lastSeq = null;   // board rebooted
+    f.lastSeq = seq; f.cnt++;
+    f.smooth = f.smooth === null ? raw : f.smooth + 0.25*(raw - f.smooth);
+    f.raw[f.head] = raw; f.sm[f.head] = f.smooth; f.head = (f.head+1)%N; f.n = Math.min(f.n+1, N);
+    if (f.smooth > f.max) f.max = f.smooth;
+    if (f.zero){
+      f.zero.vals.push(raw);
+      if (performance.now() >= f.zero.until && f.zero.vals.length > 20){
+        f.base = mean(f.zero.vals); f.noise = sd(f.zero.vals); f.zero = null; f.pressed = false;
+      }
+    } else if (f.base === null) startZero();
+    if (f.base !== null){
+      const on = f.base + Math.max(60, 6*f.noise), off = f.base + Math.max(30, 3*f.noise);
+      if (!f.pressed && f.smooth > on){ f.pressed = true; f.peak = f.smooth; }
+      else if (f.pressed){
+        if (f.smooth > f.peak) f.peak = f.smooth;
+        if (f.smooth < off){ f.pressed = false; f.last = Math.round(f.peak); f.peaks.push(f.peak); if (f.peaks.length > 20) f.peaks.shift(); }
+      }
+    }
+    f.prev = raw;
+    if (h.during) h.during.f.push(raw);
+  }
+  setInterval(() => { f.rate = f.cnt; f.cnt = 0; }, 1000);
+
+  // ---------------- Pulse ----------------
+  const PN = 600;   // 6 s of waveform at 100 Hz
+  const p = { wav:new Float32Array(PN), thr:new Float32Array(PN), head:0, n:0, last:null, thresh:null,
+    bpm:null, ibi:null, beats:0, lastBeatT:null, ibis:[], hist:[], min:null, max:null, lastH:null,
+    idle:[], manual:null, noise:0, lastNoiseT:null };
+  function onP(raw, thresh){
+    p.last = raw; p.thresh = thresh;
+    p.wav[p.head] = raw; p.thr[p.head] = thresh; p.head = (p.head+1)%PN; p.n = Math.min(p.n+1, PN);
+    p.lastH = Date.now()/1000;
+    if (h.during) h.during.p.push(raw);
+    // idle sample = signal when no recent beat
+    if (p.lastBeatT === null || p.lastH - p.lastBeatT > 3){ p.idle.push(raw); if (p.idle.length > 200) p.idle.shift(); }
+  }
+  function onB(bpm, ibi){
+    const t = Date.now()/1000;
+    if (bpm < 40 || bpm > 180){ p.noise++; p.lastNoiseT = t; return; }  // flicker noise, not a heartbeat
+    p.bpm = bpm; p.ibi = ibi; p.beats++; p.lastBeatT = t;
+    if (h.sync) h.beatsSync++;
+    p.ibis.push(ibi); if (p.ibis.length > 60) p.ibis.shift();
+    p.hist.push({t, bpm}); while (p.hist.length && t - p.hist[0].t > 300) p.hist.shift();
+    p.min = p.min === null ? bpm : Math.min(p.min, bpm);
+    p.max = p.max === null ? bpm : Math.max(p.max, bpm);
+  }
+  function rmssd(){
+    const v = p.ibis.slice(-30);
+    if (v.length < 5) return null;
+    let s = 0; for (let i=1;i<v.length;i++){ const d = v[i]-v[i-1]; s += d*d; }
+    return Math.sqrt(s/(v.length-1));
+  }
+
+  // ---------------- stream ----------------
+  const log = msg => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b>${new Date().toLocaleTimeString()}</b> ${msg.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}`;
+    const ol = $('log'); ol.prepend(li); while (ol.children.length > 30) ol.lastChild.remove();
+  };
+  let recording = '';
+  function handle(t, line){
+    if (line[0] === '#'){
+      const q = line.slice(1).split(',');
+      if (q[0] === 'status'){
+        const s = q[1];
+        $('conn').dataset.s = s === 'connected' ? 'live' : 'down';
+        $('connTxt').textContent = s === 'connected' ? `Live · ${q[2]}` :
+          s === 'busy' ? `Port busy — close the pulse monitor / IDE` : 'Waiting for the XIAO (USB)…';
+        if (s === 'connected') log(`Connected to ${q[2]}`);
+      } else if (q[0] === 'note'){
+        log(`Note: ${q.slice(1).join(',')}`);
+      } else if (q[0] === 'rec'){
+        recording = q.slice(1).join(',');
+        $('rec').setAttribute('aria-pressed', recording ? 'true' : 'false');
+        $('rec').textContent = recording ? 'Stop recording' : 'Record CSV';
+        $('recPath').textContent = recording ? `Recording to ${recording.replace(/^.*\/Documents\//, '~/Documents/')}` : '';
+      }
+      return;
+    }
+    const q = line.split(',');
+    if (q[0] === 'S'){ onF(Math.round(+q[1]/10), +q[2]); onP(+q[3], +q[4]); }
+    else if (q[0] === 'F') onF(+q[1], +q[2]);
+    else if (q[0] === 'P') onP(+q[1], +q[2]);
+    else if (q[0] === 'B'){ if (q.length > 3) onB(+q[2], +q[3]); else onB(+q[1], +q[2]); }
+    else if (q[0] === 'H'){ onH(q[1], +q[2], +q[3], +q[4], +q[5]); if (q.length > 7) onLoop(+q[6], +q[7]); }
+    else if (q[0] === 'I') log(q.slice(1).join(','));
+  }
+  function connect(){
+    window.__handle = handle;  // test hook: feed protocol lines from the console
+    const es = new EventSource('/events');
+    es.onmessage = e => { for (const [t, line] of JSON.parse(e.data)) handle(t, line); };
+    es.onerror = () => { $('conn').dataset.s = 'down'; $('connTxt').textContent = 'Bridge offline — double-click Bench 2 Dashboard.command'; };
+  }
+  connect();
+
+  const post = (url, body) => fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }).catch(()=>{});
+  $('rec').onclick = () => post('/record', { on: !recording });
+  $('zero').onclick = startZero;
+  $('resetPress').onclick = () => { f.peaks = []; f.last = null; };
+  $('cmp').onclick = () => { const v = +$('manual').value; p.manual = v > 0 ? v : null; };
+
+  // ---------------- UI ----------------
+  function ui(){
+    // FSR
+    if (f.smooth !== null){
+      const v = f.smooth, volts = v*VPER;
+      $('fVal').textContent = Math.round(v);
+      $('fDelta').textContent = f.base === null ? '—' : '+' + Math.max(0, Math.round(v - f.base));
+      $('fVolt').textContent = volts.toFixed(2);
+      $('fState').dataset.on = f.pressed ? '1' : '0';
+      $('fState').textContent = f.zero ? 'MEASURING REST' : f.pressed ? 'PRESSED' : 'AT REST';
+    }
+    $('mBase').textContent = f.base === null ? '—' : Math.round(f.base);
+    $('mNoise').textContent = f.noise === null ? '—' : f.noise.toFixed(1);
+    $('mPeak').textContent = f.max ? Math.round(f.max) : '—';
+    $('mPress').textContent = f.peaks.length;
+    $('mLast').textContent = f.last === null ? '—' : f.last;
+    $('mRate').textContent = f.rate === null ? '—' : f.rate + ' /s';
+    if (f.base !== null && !f.zero){
+      const b = Math.round(f.base);
+      $('tf1r').textContent = `rest = ${b} counts`;
+      b < 20 ? chip('tf1','pass','pass') : chip('tf1','fail','fail');
+      $('tf2r').textContent = `SD = ${f.noise.toFixed(1)} counts`;
+      f.noise <= 3 ? chip('tf2','pass','pass') : chip('tf2','fail','noisy');
+    }
+    if (f.max){ $('tf3r').textContent = `peak ${Math.round(f.max)}`; f.max >= 600 ? chip('tf3','pass','pass') : chip('tf3','run','press harder'); }
+    if (f.peaks.length){
+      const cv = f.peaks.length > 1 ? sd(f.peaks)/mean(f.peaks)*100 : 0;
+      $('tf4r').textContent = `${f.peaks.length} / 20 · mean ${Math.round(mean(f.peaks))} · CV ${cv.toFixed(1)}%`;
+      f.peaks.length < 20 ? chip('tf4','run','in progress') : cv <= 10 ? chip('tf4','pass','pass') : chip('tf4','fail','fail');
+    }
+    if (f.rate !== null){ $('tf5r').textContent = `${f.rate} samples/s`; f.rate >= 95 && f.rate <= 105 ? chip('tf5','pass','pass') : chip('tf5','warn','off-rate'); }
+
+    // Pulse
+    const now = Date.now()/1000;
+    const beating = p.lastBeatT !== null && now - p.lastBeatT < 2.5;
+    $('pBpm').textContent = beating && p.bpm ? p.bpm : '—';
+    $('pIbi').textContent = beating && p.ibi ? p.ibi : '—';
+    const r = rmssd();
+    $('pRmssd').textContent = r === null ? '—' : Math.round(r);
+    $('pState').dataset.beat = (p.lastBeatT !== null && now - p.lastBeatT < 0.15) ? '1' : '0';
+    const noisy = !beating && p.lastNoiseT !== null && now - p.lastNoiseT < 2.5;
+    $('pState').textContent = p.last === null ? 'NO SIGNAL' : beating ? 'BEATING' : noisy ? 'NOISE · NO FINGER' : 'NO FINGER / SETTLING';
+    $('pAge').textContent = p.lastBeatT === null ? 'none yet' : `${(now - p.lastBeatT).toFixed(1)} s ago`;
+    $('pBeats').textContent = p.beats;
+    const w30 = p.hist.filter(x => now - x.t <= 30).map(x => x.bpm);
+    const m30 = w30.length ? mean(w30) : null, s30 = w30.length ? sd(w30) : null;
+    $('pMean').textContent = m30 === null ? '—' : `${m30.toFixed(1)} ± ${s30.toFixed(1)}`;
+    $('pRange').textContent = p.min === null ? '—' : `${p.min}–${p.max}`;
+    let ampNow = null;
+    if (p.n > 50){
+      const start = (p.head - Math.min(p.n,100) + PN) % PN; let lo=1e9, hi=0;
+      for (let k=0;k<Math.min(p.n,100);k++){ const v = p.wav[(start+k)%PN]; lo=Math.min(lo,v); hi=Math.max(hi,v); }
+      ampNow = hi - lo;
+    }
+    $('pAmp').textContent = ampNow === null ? '—' : `${Math.round(ampNow)} counts`;
+    const idle = p.idle.length > 20 ? mean(p.idle) : null;
+    $('pIdle').textContent = idle === null ? '—' : Math.round(idle);
+
+    if (idle !== null){ $('tp1r').textContent = `idle ~${Math.round(idle)}`; idle >= 430 && idle <= 520 ? chip('tp1','pass','pass') : chip('tp1','warn','off-centre'); }
+    if (ampNow !== null){ $('tp2r').textContent = `swing ${Math.round(ampNow)} counts`; beating && ampNow >= 40 ? chip('tp2','pass','pass') : chip('tp2','run', ampNow >= 40 ? 'no beats' : 'weak/again'); }
+    if (p.bpm !== null){ $('tp3r').textContent = beating ? `${p.bpm} bpm, ${p.beats} beats` : `last ${p.bpm} bpm (settling)`; beating && p.bpm >= 40 && p.bpm <= 180 ? chip('tp3','pass','pass') : chip('tp3','run','settling'); }
+    if (w30.length >= 8){ $('tp4r').textContent = `SD ${s30.toFixed(1)} bpm over ${w30.length} beats`; s30 <= 5 ? chip('tp4','pass','pass') : chip('tp4','warn','unstable'); }
+    else { $('tp4r').textContent = `${w30.length} / 8 beats`; chip('tp4','run','collecting'); }
+    if (p.manual !== null){
+      if (m30 === null){ $('tp5r').textContent = 'No beats in the last 30 s'; chip('tp5','warn','no data'); }
+      else { const d = m30 - p.manual; $('tp5r').textContent = `sensor ${m30.toFixed(1)} vs you ${p.manual} (${d>=0?'+':''}${d.toFixed(1)})`; Math.abs(d) <= 3 ? chip('tp5','pass','pass') : chip('tp5','fail','off'); }
+    }
+    if (r !== null){ $('tp6r').textContent = `RMSSD ${Math.round(r)} ms over ${Math.min(p.ibis.length,30)} beats`; chip('tp6','pass','live'); }
+    else { $('tp6r').textContent = `${p.ibis.length} / 5 beats`; chip('tp6','run','collecting'); }
+  }
+  setInterval(() => { ui(); uiH(); }, 150);
+
+
+  // ---------------- Haptics ----------------
+  const h = { mode:'idle', hz:null, vol:null, peak:0, sync:false, hist:[], lastT:null,
+    cmdAt:null, cmdName:null, alive:null, base:null, during:null, noise:null, marks:[], taps:0, beatsSync:0 };
+  const diffsd = a => { const d = []; for (let i=1;i<a.length;i++) d.push(a[i]-a[i-1]); return d.length > 3 ? sd(d) : 0; };
+  const tailF = k => { const out=[], m=Math.min(f.n,k); for (let i=0;i<m;i++) out.push(f.raw[(f.head-m+i+N)%N]); return out; };
+  const tailP = k => { const out=[], m=Math.min(p.n,k); for (let i=0;i<m;i++) out.push(p.wav[(p.head-m+i+PN)%PN]); return out; };
+  const loopH = { gap:null, dropped:null, worst:0 };
+  function onLoop(gapUs, dropped){ loopH.gap = gapUs; loopH.dropped = dropped; if (gapUs > loopH.worst) loopH.worst = gapUs; $('fGap').textContent = `${(gapUs/1000).toFixed(1)} ms (worst ${(loopH.worst/1000).toFixed(1)}) · ${dropped} dropped`; $('fGap').style.color = gapUs > 20000 || dropped > 0 ? 'var(--warn)' : ''; }
+  function onH(mode, hz, vol, peak, sync){
+    const t = Date.now()/1000;
+    sync = !!sync;
+    if (sync && !h.sync){ h.taps = 0; h.beatsSync = 0; }
+    if (h.mode !== 'tap' && mode === 'tap' && sync) h.taps++;
+    h.mode = mode; h.hz = hz; h.vol = vol; h.peak = peak; h.sync = sync; h.lastT = t;
+    h.hist.push({t, peak, hz, mode}); while (h.hist.length && t - h.hist[0].t > 10) h.hist.shift();
+    if (h.cmdAt !== null){
+      if (peak > 0){ h.alive = true; h.cmdAt = null; }
+      else if (t - h.cmdAt > 1.5){ h.alive = false; h.cmdAt = null; }
+    }
+    if (mode === 'idle' && h.during && h.during.f.length > 30 && h.during.p.length > 30){
+      h.noise = { f: diffsd(h.during.f), p: diffsd(h.during.p) }; h.during = null;
+    }
+  }
+  function hcmd(c, name){
+    if ('tbwnzo'.includes(c) && !(c === 'z' && h.mode === 'buzz') && !(c === 'o' && h.mode === 'hold')){
+      h.cmdAt = Date.now()/1000; h.cmdName = name; h.alive = null;
+      h.base = { f: diffsd(tailF(100)), p: diffsd(tailP(100)) };
+      h.during = { f: [], p: [] }; h.noise = null;
+    }
+    post('/cmd', { c });
+    log(`Sent: ${name}`);
+  }
+  $('hBuzz').onclick   = () => hcmd('z', h.mode === 'buzz' ? 'LRA off' : 'LRA on');
+  $('hHold').onclick   = () => hcmd('o', h.mode === 'hold' ? 'LRA hold off' : 'LRA hold on');
+  $('hTap').onclick    = () => hcmd('b', 'tap');
+  $('hTone').onclick   = () => hcmd('t', 'tone 160 Hz');
+  $('hWide').onclick   = () => hcmd('w', 'wide sweep');
+  $('hNarrow').onclick = () => hcmd('n', 'narrow sweep');
+  $('hStop').onclick   = () => hcmd('s', 'stop');
+  $('hDown').onclick   = () => hcmd('-', 'vol −');
+  $('hUp').onclick     = () => hcmd('+', 'vol +');
+  $('hSync').onclick   = () => hcmd('k', h.sync ? 'beat-sync off' : 'beat-sync on');
+  $('hMark').onclick   = () => { if (h.mode === 'sweep' && h.hz) h.marks.push(h.hz); else log('Mark only works while a sweep is running'); };
+  $('hMarkClr').onclick = () => { h.marks = []; $('th4r').textContent = '—'; chip('th4','','not run'); };
+  document.querySelectorAll('button[data-felt]').forEach(b => b.onclick = () => {
+    const [id, v] = b.dataset.felt.split(':'); chip(id, v, v === 'pass' ? 'felt' : 'not felt');
+  });
+  function uiH(){
+    const now = Date.now()/1000, stale = h.lastT === null || now - h.lastT > 3, on = !stale && h.mode !== 'idle';
+    $('hMode').textContent = stale ? '—' : h.mode.toUpperCase();
+    $('hHz').textContent = on ? h.hz : '—';
+    $('hVol').textContent = h.vol === null ? '—' : h.vol.toFixed(2);
+    $('hPeak').textContent = stale ? '—' : h.peak;
+    $('hState').dataset.on = on ? '1' : '0';
+    $('hState').textContent = stale ? 'NO STATUS' : on ? 'DRIVING' : 'AMP OFF';
+    $('hSync').setAttribute('aria-pressed', h.sync ? 'true' : 'false');
+    const holdOn = !stale && h.mode === 'hold';
+    $('hHold').setAttribute('aria-checked', holdOn ? 'true' : 'false');
+    $('hHold').querySelector('.sw-txt').textContent = holdOn ? 'LRA ON' : 'LRA OFF';
+    $('heroPeak').textContent = stale ? 'no board status' : on ? `driving · ${h.mode} · peak ${h.peak}/32767` : 'amp idle';
+    const lraOn = !stale && h.mode === 'buzz';
+    $('hBuzz').setAttribute('aria-checked', lraOn ? 'true' : 'false');
+    $('hBuzz').querySelector('.sw-txt').textContent = lraOn ? 'LRA ON' : 'LRA OFF';
+    if (h.alive === true){ $('th1r').textContent = `${h.cmdName}: peak ${h.peak}`; chip('th1','pass','driving'); }
+    else if (h.alive === false){ $('th1r').textContent = `${h.cmdName}: peak stayed 0`; chip('th1','fail','no drive'); }
+    else if (h.cmdAt !== null){ $('th1r').textContent = 'waiting for the board…'; chip('th1','run','sent'); }
+    if (h.marks.length){ $('th4r').textContent = `strongest at ${h.marks.join(', ')} Hz`; const near = h.marks.some(m => m >= 130 && m <= 190); chip('th4', near ? 'pass' : 'warn', near ? 'near 160' : 'off-resonance'); }
+    if (h.noise && h.base){
+      const lim = b => Math.max(2*b, b + 3);
+      const okF = h.noise.f <= lim(h.base.f), okP = h.noise.p <= lim(h.base.p);
+      $('th5r').textContent = `FSR ${h.base.f.toFixed(1)} → ${h.noise.f.toFixed(1)} · pulse ${h.base.p.toFixed(1)} → ${h.noise.p.toFixed(1)} counts`;
+      okF && okP ? chip('th5','pass','pass') : chip('th5','fail', okF ? 'pulse noisy' : 'fsr noisy');
+    } else if (h.during){ $('th5r').textContent = 'collecting during the drive…'; chip('th5','run','collecting'); }
+    if (h.sync){
+      const n = h.beatsSync, ok = n >= 10 && Math.abs(h.taps - n) <= Math.ceil(n * 0.1);
+      $('th6r').textContent = `${h.taps} taps / ${n} beats`;
+      chip('th6', n < 10 ? 'run' : ok ? 'pass' : 'fail', n < 10 ? 'collecting' : ok ? 'pass' : 'taps missing');
+    }
+  }
+  function drawHap(){
+    const [x, w, hgt] = fit($('hChart')), padL = 40;
+    const Y = axes(x, w, hgt, 0, 100, [0, 50, 100], padL);
+    if (!h.hist.length) return;
+    const now = Date.now()/1000, X = t => padL + Math.max(0, 1 - (now - t)/10) * (w - padL);
+    const pct = s => s.peak / 327.67;
+    x.fillStyle = tok('--s-hap'); x.globalAlpha = 0.22; x.beginPath(); x.moveTo(X(h.hist[0].t), Y(0));
+    for (const s of h.hist) x.lineTo(X(s.t), Y(pct(s)));
+    x.lineTo(X(h.hist[h.hist.length-1].t), Y(0)); x.closePath(); x.fill(); x.globalAlpha = 1;
+    x.strokeStyle = tok('--s-hap'); x.lineWidth = 2; x.beginPath();
+    h.hist.forEach((s, i) => i ? x.lineTo(X(s.t), Y(pct(s))) : x.moveTo(X(s.t), Y(pct(s)))); x.stroke();
+    x.fillStyle = tok('--muted'); x.font = '10.5px IBM Plex Mono, Menlo, monospace'; x.textAlign = 'left'; x.textBaseline = 'top';
+    let lastHz = null;
+    for (const s of h.hist){
+      if (s.mode !== 'idle' && s.hz !== lastHz){ x.fillText(s.hz + ' Hz', X(s.t) + 3, 4); lastHz = s.hz; }
+      if (s.mode === 'idle') lastHz = null;
+    }
+  }
+
+  // ---------------- charts ----------------
+  function fit(c){
+    const dpr = window.devicePixelRatio || 1, w = c.clientWidth, hgt = +c.getAttribute('height');
+    if (c.width !== Math.round(w*dpr)){ c.width = Math.round(w*dpr); c.height = Math.round(hgt*dpr); c.style.height = hgt + 'px'; }
+    const x = c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return [x, w, hgt];
+  }
+  function axes(x, w, hgt, lo, hi, ticks, padL){
+    x.clearRect(0,0,w,hgt);
+    x.font = '10.5px IBM Plex Mono, Menlo, monospace'; x.textBaseline = 'middle'; x.textAlign = 'right';
+    for (const t of ticks){
+      const y = 8 + (1 - (t - lo)/(hi - lo))*(hgt - 16);
+      x.strokeStyle = tok('--grid'); x.lineWidth = 1; x.beginPath(); x.moveTo(padL, y); x.lineTo(w, y); x.stroke();
+      x.fillStyle = tok('--muted'); x.fillText(String(t), padL - 6, y);
+    }
+    return v => 8 + (1 - (Math.min(hi, Math.max(lo, v)) - lo)/(hi - lo))*(hgt - 16);
+  }
+  function drawFSR(){
+    const [x, w, hgt] = fit($('fChart')), padL = 40;
+    const Y = axes(x, w, hgt, 0, 1000, [0, 250, 500, 750, 1000], padL);
+    const X = i => padL + i/(N-1)*(w - padL);
+    const start = (f.head - f.n + N) % N, off = N - f.n;
+    if (f.base !== null){
+      x.setLineDash([4,4]); x.strokeStyle = tok('--ok'); x.lineWidth = 1.2;
+      x.beginPath(); x.moveTo(padL, Y(f.base)); x.lineTo(w, Y(f.base)); x.stroke(); x.setLineDash([]);
+    }
+    for (const [arr, col, lw] of [[f.raw, '--s-raw', 1], [f.sm, '--s-fsr', 2]]){
+      x.strokeStyle = tok(col); x.lineWidth = lw; x.beginPath();
+      for (let k = 0; k < f.n; k++){ const i = (start + k) % N, px = X(off + k), py = Y(arr[i]); k ? x.lineTo(px, py) : x.moveTo(px, py); }
+      x.stroke();
+    }
+    if (f.n){ x.fillStyle = tok('--s-fsr'); x.beginPath(); x.arc(X(N-1), Y(f.smooth), 3.5, 0, 7); x.fill(); }
+  }
+  function drawPulse(){
+    const [x, w, hgt] = fit($('pChart')), padL = 40;
+    // auto-range to the visible waveform
+    let lo = 1e9, hi = 0;
+    const start = (p.head - p.n + PN) % PN;
+    for (let k = 0; k < p.n; k++){ const v = p.wav[(start+k)%PN]; lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    if (p.n < 10){ lo = 400; hi = 560; }
+    const pad = Math.max(20, (hi - lo) * 0.15); lo = Math.floor((lo - pad)/10)*10; hi = Math.ceil((hi + pad)/10)*10;
+    const span = Math.max(40, hi - lo);
+    const t0 = Math.round(lo), t1 = Math.round(lo+span*0.5), t2 = Math.round(lo+span);
+    const Y = axes(x, w, hgt, lo, lo+span, [t0, t1, t2], padL);
+    const X = i => padL + i/(PN-1)*(w - padL);
+    const off = PN - p.n;
+    // threshold line
+    if (p.thresh !== null){
+      x.setLineDash([4,4]); x.strokeStyle = tok('--s-thresh'); x.lineWidth = 1.2;
+      x.beginPath(); x.moveTo(padL, Y(p.thresh)); x.lineTo(w, Y(p.thresh)); x.stroke(); x.setLineDash([]);
+    }
+    // waveform
+    x.strokeStyle = tok('--s-pulse'); x.lineWidth = 2; x.beginPath();
+    for (let k = 0; k < p.n; k++){ const px = X(off + k), py = Y(p.wav[(start+k)%PN]); k ? x.lineTo(px, py) : x.moveTo(px, py); }
+    x.stroke();
+    if (p.n){ x.fillStyle = tok('--s-pulse'); x.beginPath(); x.arc(X(PN-1), Y(p.last), 3.5, 0, 7); x.fill(); }
+    if (p.n < 10){
+      x.fillStyle = tok('--muted'); x.textAlign = 'center'; x.font = '12px IBM Plex Sans, system-ui, sans-serif';
+      x.fillText('Rest a fingertip on the sensor, hold still', padL + (w - padL)/2, hgt/2);
+    }
+  }
+  function frame(){ drawFSR(); drawPulse(); drawHap(); requestAnimationFrame(frame); }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

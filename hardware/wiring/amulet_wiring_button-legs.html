@@ -1,0 +1,244 @@
+<title>Which Button Legs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+
+<style>
+:root{
+  --ground:#ECEEF0;--surface:#FFFFFF;--surface-2:#F3F5F7;
+  --ink:#16191D;--ink-soft:#586070;--ink-faint:#878F9C;--rule:#CDD3DA;
+  --good:#2E7D4F;--good-soft:#DFF0E5;--bad:#B23A2E;--bad-soft:#F7E2DF;
+  --metal:#8D96A3;--body:#3A4048;--wire-gnd:#2B3038;--wire-sig:#1F6F8B;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#121519;--surface:#1A1E24;--surface-2:#222831;
+  --ink:#E6EAF0;--ink-soft:#A2ACBA;--ink-faint:#6F7987;--rule:#303845;
+  --good:#5FC98A;--good-soft:#16301F;--bad:#EE8074;--bad-soft:#331A17;
+  --metal:#79838F;--body:#2A2F36;--wire-gnd:#AEB6C1;--wire-sig:#55B4D4;}}
+:root[data-theme="dark"]{
+  --ground:#121519;--surface:#1A1E24;--surface-2:#222831;
+  --ink:#E6EAF0;--ink-soft:#A2ACBA;--ink-faint:#6F7987;--rule:#303845;
+  --good:#5FC98A;--good-soft:#16301F;--bad:#EE8074;--bad-soft:#331A17;
+  --metal:#79838F;--body:#2A2F36;--wire-gnd:#AEB6C1;--wire-sig:#55B4D4;}
+
+body{background:var(--ground);color:var(--ink);font-family:"Source Sans 3",system-ui,sans-serif;
+  font-size:16px;line-height:1.6;padding-inline:20px;padding-block:0;}
+.wrap{max-width:760px;margin:0 auto;padding-block:40px 64px;}
+h1{font-family:Archivo,sans-serif;font-weight:700;font-size:clamp(28px,6vw,40px);line-height:1.1;
+  letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance;}
+h2{font-family:Archivo,sans-serif;font-weight:600;font-size:clamp(19px,3.6vw,23px);margin:0 0 14px;text-wrap:balance;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-faint);margin:0 0 10px;}
+.lede{font-size:clamp(17px,2.6vw,19px);color:var(--ink-soft);margin:0 0 8px;max-width:60ch;}
+p{margin:0 0 14px;max-width:64ch;}
+section{margin-top:44px;}
+.mono{font-family:"IBM Plex Mono",monospace;}
+figure{margin:0;}
+figure.card{background:var(--surface);border:1px solid var(--rule);border-radius:9px;padding:22px 18px 16px;}
+figcaption{font-size:14px;color:var(--ink-soft);margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);max-width:62ch;}
+svg{display:block;max-width:100%;height:auto;margin:0 auto;}
+.s-ink{stroke:var(--ink);} .s-metal{stroke:var(--metal);} .s-good{stroke:var(--good);}
+.s-bad{stroke:var(--bad);} .s-faint{stroke:var(--ink-faint);} .s-gnd{stroke:var(--wire-gnd);} .s-sig{stroke:var(--wire-sig);}
+.f-none{fill:none;} .f-body{fill:var(--body);} .f-metal{fill:var(--metal);} .f-surf{fill:var(--surface);}
+.f-good{fill:var(--good);} .f-bad{fill:var(--bad);} .f-ink{fill:var(--ink);}
+.lbl{fill:var(--ink);font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;}
+.lbl-s{fill:var(--ink-soft);font-family:"Source Sans 3",sans-serif;font-size:12.5px;}
+.lbl-g{fill:var(--good);font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;}
+.lbl-b{fill:var(--bad);font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;}
+.w2{stroke-width:2;} .w3{stroke-width:3;} .w4{stroke-width:4;}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media (max-width:620px){.pair{grid-template-columns:1fr;}}
+.pair figure{background:var(--surface);border:1px solid var(--rule);border-radius:9px;padding:16px 14px 12px;}
+.pair h3{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px;}
+.pair h3.ok{color:var(--good);} .pair h3.no{color:var(--bad);}
+.pair figcaption{font-size:13px;margin-top:10px;padding-top:9px;}
+.rule-box{border-left:3px solid var(--good);background:var(--good-soft);padding:14px 16px;
+  border-radius:0 7px 7px 0;margin:22px 0;}
+.rule-box p{margin:0;font-size:16.5px;}
+.warn-box{border-left:3px solid var(--bad);background:var(--bad-soft);padding:14px 16px;
+  border-radius:0 7px 7px 0;margin:22px 0;}
+.warn-box p{margin:0;}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;}
+ol.steps li{counter-increment:s;position:relative;padding-left:40px;margin-bottom:15px;max-width:62ch;}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:25px;height:25px;
+  display:grid;place-items:center;border-radius:50%;background:var(--surface);border:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--good);font-weight:600;}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink-faint);}
+</style>
+
+<div class="wrap">
+
+<p class="eyebrow">Amulet XPL · harness · joints 11–12</p>
+<h1>Which button legs</h1>
+<p class="lede">A 6 mm tactile switch has four legs but only two circuits. Two of those legs are already joined inside the case, which is what has gone wrong on your board.</p>
+
+<div class="rule-box">
+<p><strong>The rule: solder to two <em>diagonally opposite</em> legs.</strong> Diagonal is the only pairing that is right no matter which way round the switch sits.</p>
+</div>
+
+<section>
+<p class="eyebrow">Why it failed</p>
+<h2>Two of the legs are the same wire</h2>
+<p>Inside the case, the legs are bonded in pairs. Each pair is one conductor before you solder anything. Pressing the button is what bridges one pair to the other — that is the whole mechanism.</p>
+
+<figure class="card">
+<svg viewBox="0 0 420 300" role="img" aria-label="Top view of a 6 mm tactile switch. Legs A and B are joined inside by a bar, as are legs C and D. Pressing the button bridges the two bars.">
+  <rect x="140" y="70" width="140" height="140" rx="8" class="f-body s-ink w2"/>
+  <circle cx="210" cy="140" r="34" class="f-metal s-ink w2"/>
+  <text x="210" y="145" class="lbl" text-anchor="middle" fill="#fff">PRESS</text>
+
+  <!-- legs -->
+  <line x1="140" y1="103" x2="72" y2="103" class="s-metal w4"/>
+  <line x1="140" y1="177" x2="72" y2="177" class="s-metal w4"/>
+  <line x1="280" y1="103" x2="348" y2="103" class="s-metal w4"/>
+  <line x1="280" y1="177" x2="348" y2="177" class="s-metal w4"/>
+  <circle cx="66" cy="103" r="9" class="f-surf s-ink w2"/>
+  <circle cx="66" cy="177" r="9" class="f-surf s-ink w2"/>
+  <circle cx="354" cy="103" r="9" class="f-surf s-ink w2"/>
+  <circle cx="354" cy="177" r="9" class="f-surf s-ink w2"/>
+  <text x="66" y="107" class="lbl" text-anchor="middle">A</text>
+  <text x="66" y="181" class="lbl" text-anchor="middle">B</text>
+  <text x="354" y="107" class="lbl" text-anchor="middle">C</text>
+  <text x="354" y="181" class="lbl" text-anchor="middle">D</text>
+
+  <!-- internal bars -->
+  <line x1="163" y1="103" x2="163" y2="177" class="s-bad w3" stroke-dasharray="6 4"/>
+  <line x1="257" y1="103" x2="257" y2="177" class="s-bad w3" stroke-dasharray="6 4"/>
+  <text x="120" y="145" class="lbl-b" text-anchor="middle">A=B</text>
+  <text x="300" y="145" class="lbl-b" text-anchor="middle">C=D</text>
+
+  <text x="210" y="248" class="lbl-s" text-anchor="middle">dashed = joined inside the case, always</text>
+  <text x="210" y="272" class="lbl-s" text-anchor="middle">pressing connects the left bar to the right bar</text>
+</svg>
+<figcaption>A and B are one conductor. C and D are the other. You cannot see this from the outside, which is exactly why it catches people.</figcaption>
+</figure>
+
+<div class="warn-box">
+<p><strong>What your board has now:</strong> both wires landed on one pair, so D2 is wired straight to GND through the internal bar. The firmware reads it LOW forever and no press can ever change it — which is precisely what the scope showed.</p>
+</div>
+</section>
+
+<section>
+<p class="eyebrow">Right and wrong</p>
+<h2>Same side kills it, diagonal works</h2>
+
+<div class="pair">
+<figure>
+<h3 class="no">✗ what you have</h3>
+<svg viewBox="0 0 300 230" role="img" aria-label="Wrong: both wires on legs A and B, which are the same internal conductor, so the switch is permanently closed.">
+  <rect x="100" y="55" width="100" height="100" rx="6" class="f-body s-ink w2"/>
+  <circle cx="150" cy="105" r="24" class="f-metal s-ink w2"/>
+  <line x1="100" y1="80" x2="48" y2="80" class="s-metal w4"/>
+  <line x1="100" y1="130" x2="48" y2="130" class="s-metal w4"/>
+  <line x1="200" y1="80" x2="252" y2="80" class="s-metal w4"/>
+  <line x1="200" y1="130" x2="252" y2="130" class="s-metal w4"/>
+  <line x1="120" y1="80" x2="120" y2="130" class="s-bad w3" stroke-dasharray="5 4"/>
+  <line x1="180" y1="80" x2="180" y2="130" class="s-faint w2" stroke-dasharray="5 4"/>
+  <circle cx="42" cy="80" r="11" class="f-bad"/>
+  <circle cx="42" cy="130" r="11" class="f-bad"/>
+  <circle cx="258" cy="80" r="8" class="f-surf s-faint w2"/>
+  <circle cx="258" cy="130" r="8" class="f-surf s-faint w2"/>
+  <text x="42" y="84" class="lbl" text-anchor="middle" fill="#fff">A</text>
+  <text x="42" y="134" class="lbl" text-anchor="middle" fill="#fff">B</text>
+  <text x="150" y="196" class="lbl-b" text-anchor="middle">same pair = always closed</text>
+</svg>
+<figcaption>Both wires on one internal bar. D2 is tied to GND permanently.</figcaption>
+</figure>
+
+<figure>
+<h3 class="ok">✓ do this</h3>
+<svg viewBox="0 0 300 230" role="img" aria-label="Correct: one wire on leg A and the other on leg D, diagonally opposite, so one comes from each internal pair.">
+  <rect x="100" y="55" width="100" height="100" rx="6" class="f-body s-ink w2"/>
+  <circle cx="150" cy="105" r="24" class="f-metal s-ink w2"/>
+  <line x1="100" y1="80" x2="48" y2="80" class="s-metal w4"/>
+  <line x1="100" y1="130" x2="48" y2="130" class="s-metal w4"/>
+  <line x1="200" y1="80" x2="252" y2="80" class="s-metal w4"/>
+  <line x1="200" y1="130" x2="252" y2="130" class="s-metal w4"/>
+  <line x1="120" y1="80" x2="120" y2="130" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="180" y1="80" x2="180" y2="130" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="42" y1="80" x2="258" y2="130" class="s-good w3" stroke-dasharray="7 5"/>
+  <circle cx="42" cy="80" r="11" class="f-good"/>
+  <circle cx="258" cy="130" r="11" class="f-good"/>
+  <circle cx="42" cy="130" r="8" class="f-surf s-faint w2"/>
+  <circle cx="258" cy="80" r="8" class="f-surf s-faint w2"/>
+  <text x="42" y="84" class="lbl" text-anchor="middle" fill="#fff">A</text>
+  <text x="258" y="134" class="lbl" text-anchor="middle" fill="#fff">D</text>
+  <text x="150" y="196" class="lbl-g" text-anchor="middle">diagonal = one from each pair</text>
+</svg>
+<figcaption>A and D. Or B and C — the other diagonal works identically.</figcaption>
+</figure>
+</div>
+</section>
+
+<section>
+<p class="eyebrow">Why diagonal, specifically</p>
+<h2>It is right whichever way the switch sits</h2>
+<p>You do not have to work out which way the internal bars run, and you cannot see them anyway. A diagonal always crosses them, so it always takes one leg from each pair.</p>
+
+<figure class="card">
+<svg viewBox="0 0 560 250" role="img" aria-label="Two switches with internal bars running in opposite directions. The same diagonal pairing is correct in both cases.">
+  <!-- left: bars vertical -->
+  <rect x="70" y="60" width="90" height="90" rx="6" class="f-body s-ink w2"/>
+  <line x1="70" y1="82" x2="30" y2="82" class="s-metal w4"/>
+  <line x1="70" y1="128" x2="30" y2="128" class="s-metal w4"/>
+  <line x1="160" y1="82" x2="200" y2="82" class="s-metal w4"/>
+  <line x1="160" y1="128" x2="200" y2="128" class="s-metal w4"/>
+  <line x1="88" y1="82" x2="88" y2="128" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="142" y1="82" x2="142" y2="128" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="26" y1="82" x2="204" y2="128" class="s-good w3" stroke-dasharray="7 5"/>
+  <circle cx="26" cy="82" r="9" class="f-good"/><circle cx="204" cy="128" r="9" class="f-good"/>
+  <text x="115" y="188" class="lbl-s" text-anchor="middle">bars side to side</text>
+  <text x="115" y="210" class="lbl-g" text-anchor="middle">diagonal crosses them ✓</text>
+
+  <!-- right: bars horizontal -->
+  <rect x="360" y="60" width="90" height="90" rx="6" class="f-body s-ink w2"/>
+  <line x1="360" y1="82" x2="320" y2="82" class="s-metal w4"/>
+  <line x1="360" y1="128" x2="320" y2="128" class="s-metal w4"/>
+  <line x1="450" y1="82" x2="490" y2="82" class="s-metal w4"/>
+  <line x1="450" y1="128" x2="490" y2="128" class="s-metal w4"/>
+  <line x1="378" y1="82" x2="432" y2="82" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="378" y1="128" x2="432" y2="128" class="s-faint w2" stroke-dasharray="5 4"/>
+  <line x1="316" y1="82" x2="494" y2="128" class="s-good w3" stroke-dasharray="7 5"/>
+  <circle cx="316" cy="82" r="9" class="f-good"/><circle cx="494" cy="128" r="9" class="f-good"/>
+  <text x="405" y="188" class="lbl-s" text-anchor="middle">bars top to bottom</text>
+  <text x="405" y="210" class="lbl-g" text-anchor="middle">diagonal crosses them ✓</text>
+</svg>
+<figcaption>Same diagonal, opposite internal wiring, correct both times. That is the whole reason the rule is stated as "diagonal" rather than "left and right".</figcaption>
+</figure>
+</section>
+
+<section>
+<p class="eyebrow">The fix</p>
+<h2>What to actually do</h2>
+<ol class="steps">
+  <li><strong>Leave one wire where it is.</strong> Say it is on leg A — that one is fine.</li>
+  <li><strong>Desolder the other wire</strong> from the leg beside it and move it to the leg <em>diagonally across</em> the body. Not the one next to it, not the one directly opposite along the same edge — the far corner.</li>
+  <li><strong>Either wire can be either side.</strong> The switch has no polarity: one leg goes to the GND row, the other to D2, and it does not matter which is which.</li>
+  <li><strong>Watch the scope.</strong> The button panel will drop its warning and show <span class="mono">released</span> the moment D2 is free, then light up on each press with the count stepping up.</li>
+</ol>
+
+<figure class="card" style="margin-top:22px">
+<svg viewBox="0 0 500 200" role="img" aria-label="Final wiring: one diagonal leg to the ground row on the protoboard, the other diagonal leg to XIAO pin D2.">
+  <rect x="200" y="55" width="90" height="90" rx="6" class="f-body s-ink w2"/>
+  <circle cx="245" cy="100" r="22" class="f-metal s-ink w2"/>
+  <line x1="200" y1="77" x2="160" y2="77" class="s-metal w4"/>
+  <line x1="200" y1="123" x2="160" y2="123" class="s-metal w4"/>
+  <line x1="290" y1="77" x2="330" y2="77" class="s-metal w4"/>
+  <line x1="290" y1="123" x2="330" y2="123" class="s-metal w4"/>
+  <circle cx="154" cy="77" r="9" class="f-good"/>
+  <circle cx="336" cy="123" r="9" class="f-good"/>
+  <circle cx="154" cy="123" r="7" class="f-surf s-faint w2"/>
+  <circle cx="336" cy="77" r="7" class="f-surf s-faint w2"/>
+  <line x1="145" y1="77" x2="40" y2="77" class="s-gnd w3"/>
+  <text x="36" y="81" class="lbl" text-anchor="end">GND row</text>
+  <line x1="345" y1="123" x2="440" y2="123" class="s-sig w3"/>
+  <text x="446" y="127" class="lbl">D2</text>
+  <text x="245" y="180" class="lbl-s" text-anchor="middle">internal pull-up in firmware · pressed reads LOW</text>
+</svg>
+<figcaption>No resistor anywhere. <span class="mono">pinMode(D2, INPUT_PULLUP)</span> holds the line high, and closing the switch pulls it to ground.</figcaption>
+</figure>
+</section>
+
+<p class="foot">Amulet XPL · supersedes joints 11–12 of <span class="mono">amulet_wiring_soldered-harness</span>, which warned about this pairing but did not show it.</p>
+
+</div>

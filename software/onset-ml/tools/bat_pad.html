@@ -1,0 +1,99 @@
+<!doctype html><html><head><meta charset="utf-8"><title>BAT Pad Test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#0E1116;--panel:#161B22;--rule:#242C38;--ink:#E8ECF2;--soft:#8D99AC;--faint:#5C6878;
+--ok:#4ADE80;--bad:#F87171;--warn:#F0A93B;--acc:#38BDF8;--grid:#1A212C}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;padding:22px}
+.mono{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+h1{font-size:16px;font-weight:650;margin-bottom:3px}
+.sub{color:var(--soft);font-size:13px;margin-bottom:18px}
+.verdict{border-radius:14px;padding:26px 22px;text-align:center;margin-bottom:16px;
+ border:2px solid var(--rule);background:var(--panel);transition:.15s}
+.verdict.on{background:#0C2A18;border-color:var(--ok)}
+.verdict.off{background:#2A1412;border-color:var(--bad)}
+.verdict .big{font-family:"IBM Plex Mono",monospace;font-size:clamp(26px,6vw,42px);font-weight:700;letter-spacing:-.01em}
+.verdict .why{font-size:14px;color:var(--soft);margin-top:7px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:11px;padding:15px 17px}
+.card h2{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:9px}
+.val{font-family:"IBM Plex Mono",monospace;font-size:31px;font-weight:600;line-height:1.1}
+.unit{font-size:14px;color:var(--faint);margin-left:5px}
+.hint{font-size:12.5px;color:var(--soft);margin-top:7px;line-height:1.4}
+.lamp{display:inline-block;padding:6px 15px;border-radius:99px;font-family:"IBM Plex Mono",monospace;
+ font-size:14px;font-weight:600;background:#20262F;color:var(--faint)}
+.lamp.on{background:var(--ok);color:#052012}
+canvas{display:block;width:100%;border-radius:9px;background:#0A0D12;border:1px solid var(--rule)}
+.jbar{height:11px;border-radius:6px;background:#0A0D12;border:1px solid var(--rule);overflow:hidden;margin-top:9px}
+.jfill{height:100%;width:0%;background:var(--ok);transition:width .2s,background .2s}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:6px}
+td{padding:6px 4px;border-bottom:1px solid var(--rule);color:var(--soft)}
+td:last-child{text-align:right;font-family:"IBM Plex Mono",monospace;color:var(--ink)}
+</style></head><body>
+<h1>BAT Pad Test</h1>
+<div class="sub">Touch the battery + wire to the XIAO's BAT+ pad and hold. A real cell damps the node; a bare pad wanders.</div>
+
+<div id="verdict" class="verdict"><div class="big" id="vtext">waiting for data</div>
+ <div class="why" id="vwhy">&nbsp;</div></div>
+
+<div class="grid">
+ <div class="card"><h2>Pad voltage</h2>
+   <div><span class="val" id="mv">&mdash;</span><span class="unit">mV</span></div>
+   <div class="hint" id="mvhint">&nbsp;</div></div>
+ <div class="card"><h2>Wander (sample to sample)</h2>
+   <div><span class="val" id="jit">&mdash;</span><span class="unit">mV avg</span></div>
+   <div class="jbar"><div class="jfill" id="jfill"></div></div>
+   <div class="hint">under 6 = damped by a cell &middot; over 12 = floating</div></div>
+ <div class="card"><h2>Charger</h2>
+   <div style="margin-top:6px"><span class="lamp" id="chg">&mdash;</span></div>
+   <div class="hint">the BQ25101 only reports charging into something real</div></div>
+</div>
+
+<div class="card"><h2>Pad voltage, live</h2><canvas id="c" height="190"></canvas>
+ <table>
+  <tr><td>gauge</td><td id="pct">&mdash;</td></tr>
+  <tr><td>charge current setting</td><td id="fast">&mdash;</td></tr>
+  <tr><td>samples held</td><td id="n">&mdash;</td></tr>
+ </table></div>
+
+<script>
+const $=i=>document.getElementById(i), C=n=>getComputedStyle(document.body).getPropertyValue(n).trim();
+function fit(cv,h){const d=window.devicePixelRatio||1,w=cv.clientWidth;
+ if(cv._w!==w||cv._h!==h||cv._d!==d){cv.style.height=h+'px';cv.width=Math.round(w*d);cv.height=Math.round(h*d);cv._w=w;cv._h=h;cv._d=d;}
+ const x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);return {x,W:w,H:h};}
+let R=null;
+function plot(data){const {x,W,H}=fit($('c'),190);x.clearRect(0,0,W,H);
+ if(data.length<2){x.fillStyle=C('--faint');x.font='12px "IBM Plex Mono"';x.fillText('waiting...',12,H/2);return;}
+ let lo=Math.min(...data),hi=Math.max(...data);const pad=Math.max((hi-lo)*0.2,8);lo-=pad;hi+=pad;
+ if(!R)R={lo,hi};R.lo+=(lo-R.lo)*0.2;R.hi+=(hi-R.hi)*0.2;
+ const sx=i=>i*W/(data.length-1),sy=v=>H-((v-R.lo)/(R.hi-R.lo))*H;
+ x.strokeStyle=C('--grid');x.lineWidth=1;
+ for(let g=1;g<4;g++){const y=Math.round(g*H/4)+.5;x.beginPath();x.moveTo(0,y);x.lineTo(W,y);x.stroke();}
+ x.strokeStyle=C('--acc');x.lineWidth=1.8;x.lineJoin='round';x.beginPath();
+ data.forEach((v,i)=>i?x.lineTo(sx(i),sy(v)):x.moveTo(sx(i),sy(v)));x.stroke();
+ x.fillStyle=C('--acc');x.beginPath();x.arc(sx(data.length-1),sy(data[data.length-1]),4,0,7);x.fill();
+ x.fillStyle=C('--faint');x.font='10.5px "IBM Plex Mono"';
+ x.fillText(Math.round(R.hi),6,13);x.fillText(Math.round(R.lo),6,H-6);}
+async function tick(){let d;try{d=await(await fetch('/data')).json()}catch(e){return}
+ const mv=d.mv||0, j=d.jitter||0, chg=!!d.chg, bv=(d.bv||[]).slice(-160);
+ $('mv').textContent=mv||'—'; $('jit').textContent=j.toFixed(1);
+ $('pct').textContent=(d.pct||0)+'%'; $('n').textContent=bv.length;
+ $('fast').textContent=d.fast?'100 mA':'50 mA';
+ const jf=$('jfill'); jf.style.width=Math.min(100,j/25*100)+'%';
+ jf.style.background = j<6?C('--ok'):(j<12?C('--warn'):C('--bad'));
+ const lamp=$('chg'); lamp.textContent=chg?'CHARGING':'not charging';
+ lamp.className='lamp'+(chg?' on':'');
+ const v=$('verdict'), t=$('vtext'), w=$('vwhy');
+ if(!mv){v.className='verdict';t.textContent='waiting for data';w.textContent=' ';}
+ else if(j<6&&chg){v.className='verdict on';t.textContent='CELL CONNECTED';
+   w.textContent='node is damped ('+j.toFixed(1)+' mV wander) and the charger is working into it';}
+ else if(j<6){v.className='verdict on';t.textContent='LOOKS CONNECTED';
+   w.textContent='node is damped ('+j.toFixed(1)+' mV) but the charger reports nothing — cell may be full';}
+ else if(j<12){v.className='verdict';t.textContent='MARGINAL';
+   w.textContent=j.toFixed(1)+' mV wander — intermittent contact, or you are mid-tap';}
+ else{v.className='verdict off';t.textContent='FLOATING — NO CELL';
+   w.textContent=j.toFixed(1)+' mV wander, charger idle — nothing is on the BAT+ pad';}
+ $('mvhint').textContent = chg?'charger is driving this node':'unloaded reading';
+ plot(bv);}
+setInterval(tick,150);tick();addEventListener('resize',tick);
+</script></body></html>

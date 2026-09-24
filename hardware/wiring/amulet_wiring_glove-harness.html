@@ -1,0 +1,403 @@
+<title>Amulet Glove Harness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F6; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2;
+  --accent:#8F1D3D; --pad:#D9A441; --warn:#B4380B; --warn-bg:#FDF1EA; --ok:#18794A; --ok-bg:#EAF6EF;
+  --code-bg:#EEF1F4; --chip-bg:#E9EDF1; --sig:#0E7C86;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+    --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+    --code-bg:#1D2833; --chip-bg:#22303C; --sig:#4FC3CF;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+  --accent:#F0647C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+  --code-bg:#1D2833; --chip-bg:#22303C; --sig:#4FC3CF;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:36px 80px;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+h2{font-size:28px;font-weight:600}
+h3{font-size:19px;font-weight:600}
+p{margin:0;max-width:68ch}
+code{font-family:var(--mono);font-size:.9em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:12px;background:var(--chip-bg);padding:4px 9px;border-radius:4px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+.fixed{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.fixed h2{font-size:22px}
+.fixed ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.fixed li{max-width:82ch}
+.plate{background:#ECEEEA;border-radius:12px;border:1px solid #C9CEC6;overflow-x:auto;padding:10px}
+.plate svg{display:block;width:100%;min-width:860px;height:auto}
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{color:var(--muted);font-size:14px;max-width:92ch}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+tr.grp td{background:var(--code-bg);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:6px 14px}
+.lab{font-family:var(--mono);font-weight:600;font-size:13.5px;white-space:nowrap}
+.sub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.sw{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px;font-weight:500}
+.sw i{width:26px;height:8px;border-radius:4px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px;max-width:80ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;font-weight:600;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;max-width:82ch}
+.warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:14px 18px;font-size:14px;max-width:none}
+.warn b{color:var(--warn)}
+.ok{background:var(--ok-bg);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent);border-radius:10px;padding:14px 18px;font-size:14px;max-width:none}
+.ok b{color:var(--ok)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:grid;gap:8px;align-content:start}
+.card h3{font-size:18px}
+.card p{font-size:14px;color:var(--muted)}
+.card p b{color:var(--ink)}
+.count{display:flex;flex-wrap:wrap;gap:18px 32px}
+.count div{display:grid;gap:2px}
+.count .n{font-family:var(--display);font-size:40px;font-weight:600;line-height:1}
+.count .u{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Amulet · glove build · zoned harness</div>
+  <h1>Amulet Glove Harness</h1>
+  <p class="lede">Four zones, wired so that as little as possible crosses a joint. The wrist carries the protoboard, battery, button and the 10 kΩ. The palm carries the XIAO, the amp and the LRA. One finger each for the pulse sensor and the force strip. Nine wires cross a bend point in total, and they are ordered along the protoboard so that none of them cross each other on the way.</p>
+  <div class="meta">
+    <span>Zones <b>wrist · palm · index · middle</b></span>
+    <span>Wires across joints <b>9</b></span>
+    <span>Wires total <b>20</b></span>
+    <span>Cable <b>2-core 24 AWG + AWG30 silicone</b></span>
+    <span>Pin map <b>unchanged · no firmware change</b></span>
+  </div>
+</header>
+
+<div class="fixed" role="note">
+  <h2>The three ideas that keep the wire count down</h2>
+  <ul>
+    <li><b>Count crossings, not wires.</b> A wire inside a zone is free; a wire across the wrist has to survive tens of thousands of bends. So power is distributed twice: the battery rail lives at the wrist, and the <b>3.3 V for the two fingers is taken from the XIAO in the palm</b>, not dragged back from the wrist. That alone saves two wires across the wrist.</li>
+    <li><b>Order the protoboard to match the palm.</b> Left to right on the board: force node, button, V+, ground. That is the same left-to-right order as their destinations in the palm, so the four wrist wires run as a flat ribbon and never cross each other.</li>
+    <li><b>Your 2-core cable does most of it.</b> The index run is exactly two conductors, so one length of the white 2-core covers it. The middle finger is two plus one. The wrist bundle is two lengths of 2-core.</li>
+  </ul>
+</div>
+
+<section aria-labelledby="dia-h">
+  <h2 id="dia-h">Harness</h2>
+  <figure>
+    <div class="plate">
+<svg viewBox="0 0 940 800" role="img" aria-label="Zoned harness diagram of a right hand, palm up. Four zones stacked from top to bottom: index finger with the force strip at top left, middle finger with the pulse sensor at top right, the palm below them holding the XIAO, the amplifier and the LRA, and the wrist at the bottom holding the protoboard, battery, pushbutton and 10 kilohm resistor. Two wires run from the palm to the index finger, three from the palm to the middle finger, and four across the wrist. The wrist wires are ordered so they do not cross.">
+  <defs>
+    <marker id="dot" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5"><circle cx="3.5" cy="3.5" r="3.5" fill="#1B1F24"/></marker>
+  </defs>
+
+  <!-- zone plates -->
+  <g fill="#E3E6E0" stroke="#C2C7BC" stroke-width="1.5">
+    <rect x="240" y="40" width="170" height="110" rx="14"/>
+    <rect x="460" y="40" width="180" height="110" rx="14"/>
+    <rect x="220" y="215" width="470" height="345" rx="16"/>
+    <rect x="220" y="600" width="470" height="175" rx="16"/>
+  </g>
+  <g font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" letter-spacing="1.4" fill="#7A8079">
+    <text x="252" y="32">INDEX FINGER</text>
+    <text x="472" y="32">MIDDLE FINGER</text>
+    <text x="232" y="207">PALM</text>
+    <text x="232" y="592">WRIST</text>
+  </g>
+
+  <!-- ============ index finger: force strip ============ -->
+  <rect x="268" y="56" width="50" height="68" rx="8" fill="#2E3136" stroke="#1B1F24"/>
+  <rect x="276" y="62" width="34" height="52" rx="5" fill="#3F4750"/>
+  <text x="293" y="94" text-anchor="middle" font-size="8.5" fill="#C9D1D9" transform="rotate(-90 293 94)">active area</text>
+  <line x1="284" y1="124" x2="284" y2="130" stroke="#8A9199" stroke-width="2"/>
+  <line x1="308" y1="124" x2="308" y2="130" stroke="#8A9199" stroke-width="2"/>
+  <circle cx="284" cy="133" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="308" cy="133" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <text x="345" y="80" font-size="11" fill="#1B1F24" font-weight="700">Force strip</text>
+  <text x="345" y="94" font-size="9.5" fill="#5A6470">no polarity</text>
+  <text x="345" y="106" font-size="9.5" fill="#5A6470">leg A → 3V3</text>
+  <text x="345" y="118" font-size="9.5" fill="#5A6470">leg B → the signal</text>
+
+  <!-- ============ middle finger: pulse amped ============ -->
+  <rect x="488" y="60" width="126" height="50" rx="25" fill="#5A1D2E" stroke="#3A1220"/>
+  <circle cx="512" cy="85" r="9" fill="#3BB273" stroke="#1F6E45"/>
+  <text x="552" y="89" text-anchor="middle" font-size="9.5" fill="#F3F5F7" font-weight="700">Pulse Amped</text>
+  <circle cx="518" cy="120" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="550" cy="120" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <circle cx="582" cy="120" r="4.5" fill="#D9A441" stroke="#8A6516" stroke-width="1.5"/>
+  <g font-size="9" fill="#5A6470" text-anchor="middle">
+    <text x="518" y="140">+</text><text x="550" y="140">−</text><text x="582" y="140">S</text>
+  </g>
+
+  <!-- ============ palm: XIAO ============ -->
+  <rect x="305" y="250" width="120" height="200" rx="11" fill="#22272E"/>
+  <text x="365" y="428" text-anchor="middle" font-size="10" fill="#F3F5F7" font-weight="700">XIAO nRF52840</text>
+  <text x="365" y="441" text-anchor="middle" font-size="8.5" fill="#AEB6BF">top view</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.4">
+    <circle cx="305" cy="275" r="6"/><circle cx="305" cy="300" r="6"/><circle cx="305" cy="325" r="6"/><circle cx="305" cy="350" r="6"/><circle cx="305" cy="375" r="6"/><circle cx="305" cy="400" r="6"/>
+    <circle cx="425" cy="275" r="6"/><circle cx="425" cy="300" r="6"/><circle cx="425" cy="325" r="6"/><circle cx="425" cy="350" r="6"/><circle cx="425" cy="375" r="6"/><circle cx="425" cy="400" r="6"/>
+    <rect x="330" y="446" width="20" height="8" rx="2"/><rect x="380" y="446" width="20" height="8" rx="2"/>
+  </g>
+  <g font-size="10.5" font-weight="700" fill="#F3F5F7">
+    <text x="317" y="279">D0</text><text x="317" y="304">D1</text><text x="317" y="329">D2</text><text x="317" y="354">D3</text><text x="317" y="379">D4</text><text x="317" y="404">D5</text>
+    <text x="413" y="279" text-anchor="end">5V</text><text x="413" y="304" text-anchor="end">GND</text><text x="413" y="329" text-anchor="end">3V3</text><text x="413" y="354" text-anchor="end">D10</text><text x="413" y="379" text-anchor="end">D9</text><text x="413" y="404" text-anchor="end">D8</text>
+  </g>
+  <g font-size="8" fill="#8A9199">
+    <text x="341" y="279">force</text><text x="341" y="304">pulse</text><text x="341" y="329">button</text><text x="341" y="354">free</text><text x="341" y="379">free</text><text x="341" y="404">free</text>
+  </g>
+  <text x="340" y="468" text-anchor="middle" font-size="8.5" fill="#1B1F24" font-weight="700">BAT+</text>
+  <text x="390" y="468" text-anchor="middle" font-size="8.5" fill="#1B1F24" font-weight="700">BAT−</text>
+  <text x="365" y="480" text-anchor="middle" font-size="8" fill="#5A6470">underside pads</text>
+
+  <!-- ============ palm: amp ============ -->
+  <rect x="470" y="250" width="185" height="192" rx="9" fill="#2A3A4A" stroke="#1B2530"/>
+  <text x="592" y="404" text-anchor="middle" font-size="10.5" fill="#F3F5F7" font-weight="700">MAX98357A</text>
+  <text x="592" y="417" text-anchor="middle" font-size="8" fill="#AEB6BF">pads in harness order —</text>
+  <text x="592" y="428" text-anchor="middle" font-size="8" fill="#AEB6BF">go by the printed label</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.4">
+    <circle cx="470" cy="275" r="6"/><circle cx="470" cy="300" r="6"/><circle cx="470" cy="325" r="6"/><circle cx="470" cy="350" r="6"/><circle cx="470" cy="375" r="6"/><circle cx="470" cy="400" r="6"/><circle cx="470" cy="425" r="6"/>
+    <circle cx="520" cy="442" r="6"/><circle cx="580" cy="442" r="6"/>
+  </g>
+  <g font-size="10" font-weight="700" fill="#F3F5F7">
+    <text x="530" y="279">Vin</text><text x="530" y="304">SD</text><text x="530" y="329">GND</text><text x="530" y="354">GAIN</text><text x="482" y="379">LRC</text><text x="482" y="404">BCLK</text><text x="482" y="429">DIN</text>
+  </g>
+  <text x="537" y="457" font-size="10" font-weight="700" fill="#1B1F24">+</text>
+  <text x="597" y="457" font-size="10" font-weight="700" fill="#1B1F24">−</text>
+  <!-- on-board jumpers -->
+  <path d="M470 300 H522 V275 H470" fill="none" stroke="#7FDCE3" stroke-width="2" stroke-dasharray="4 3"/>
+  <path d="M470 350 H522 V325 H470" fill="none" stroke="#7FDCE3" stroke-width="2" stroke-dasharray="4 3"/>
+  <text x="592" y="364" text-anchor="middle" font-size="8.5" fill="#7FDCE3" font-weight="600">SD→Vin and GAIN→GND:</text>
+  <text x="592" y="375" text-anchor="middle" font-size="8.5" fill="#7FDCE3" font-weight="600">jumpers on the amp itself</text>
+
+  <!-- ============ palm: LRA ============ -->
+  <rect x="495" y="480" width="130" height="52" rx="10" fill="#3F4750" stroke="#1B1F24"/>
+  <text x="560" y="503" text-anchor="middle" font-size="10.5" fill="#F3F5F7" font-weight="700">Drake LRA</text>
+  <text x="560" y="518" text-anchor="middle" font-size="8.5" fill="#AEB6BF">either way round</text>
+  <path d="M520 442 V480" fill="none" stroke="#6E7780" stroke-width="3.5"/>
+  <path d="M580 442 V480" fill="none" stroke="#6E7780" stroke-width="3.5"/>
+
+  <!-- ============ wrist: protoboard ============ -->
+  <rect x="245" y="622" width="245" height="132" rx="6" fill="#D8C79A" stroke="#9A8A5C"/>
+  <line x1="262" y1="645" x2="478" y2="645" stroke="#B3261E" stroke-width="3.5"/>
+  <line x1="262" y1="735" x2="478" y2="735" stroke="#1B1F24" stroke-width="3.5"/>
+  <text x="482" y="642" font-size="9" fill="#B3261E" font-weight="700">V+</text>
+  <text x="482" y="739" font-size="9" fill="#1B1F24" font-weight="700">GND</text>
+  <text x="367" y="616" text-anchor="middle" font-size="10" fill="#1B1F24" font-weight="700">PROTOBOARD · battery rail + button + 10 kΩ</text>
+
+  <!-- 10k on the board -->
+  <rect x="283" y="668" width="14" height="42" rx="4" fill="#E8D8B0" stroke="#9A8A5C"/>
+  <rect x="283" y="676" width="14" height="4" fill="#7A4A1E"/><rect x="283" y="684" width="14" height="4" fill="#111"/><rect x="283" y="692" width="14" height="4" fill="#E07A1F"/>
+  <line x1="290" y1="710" x2="290" y2="735" stroke="#6E7780" stroke-width="2.5"/>
+  <circle cx="290" cy="668" r="4" fill="#F3F5F7" stroke="#1B1F24" stroke-width="2"/>
+  <text x="262" y="692" text-anchor="end" font-size="9" fill="#1B1F24" font-weight="700">10 kΩ</text>
+  <text x="262" y="704" text-anchor="end" font-size="8" fill="#5A6470">to GND rail</text>
+
+  <!-- button on the board -->
+  <rect x="330" y="670" width="40" height="40" rx="5" fill="#2E3136" stroke="#1B1F24"/>
+  <circle cx="350" cy="690" r="10" fill="#5A6470" stroke="#1B1F24"/><circle cx="350" cy="690" r="5.5" fill="#8A9199"/>
+  <line x1="350" y1="710" x2="350" y2="735" stroke="#1B1F24" stroke-width="2.5"/>
+  <circle cx="350" cy="670" r="4" fill="#F3F5F7" stroke="#1B1F24" stroke-width="2"/>
+  <text x="350" y="758" text-anchor="middle" font-size="9" fill="#1B1F24" font-weight="700">6 mm button</text>
+  <text x="350" y="769" text-anchor="middle" font-size="8" fill="#5A6470">one leg per side pair</text>
+
+  <!-- battery -->
+  <rect x="520" y="630" width="140" height="66" rx="7" fill="#7C8A99" stroke="#4E5A66"/>
+  <text x="590" y="656" text-anchor="middle" font-size="11" fill="#F3F5F7" font-weight="700">LiPo</text>
+  <text x="590" y="670" text-anchor="middle" font-size="8.5" fill="#E3E9ED">100–250 mAh</text>
+  <text x="590" y="682" text-anchor="middle" font-size="8.5" fill="#E3E9ED">401230 or 502030</text>
+  <!-- battery + through switch to V+ rail -->
+  <path d="M520 645 H505" fill="none" stroke="#B3261E" stroke-width="3.5"/>
+  <circle cx="502" cy="645" r="3" fill="#1B1F24"/><circle cx="486" cy="645" r="3" fill="#1B1F24"/>
+  <line x1="502" y1="645" x2="489" y2="634" stroke="#1B1F24" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M486 645 H478" fill="none" stroke="#B3261E" stroke-width="3.5"/>
+  <text x="497" y="622" text-anchor="middle" font-size="8.5" fill="#1B1F24" font-weight="700">slide switch</text>
+  <!-- battery − to GND rail -->
+  <path d="M520 682 H502 V735 H478" fill="none" stroke="#1B1F24" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- ============================ WIRES ============================ -->
+  <!-- 1. 3V3 out of the palm to both fingers -->
+  <path d="M425 325 H458 V195 H284 V133" fill="none" stroke="#D8342A" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M458 195 H518 V120" fill="none" stroke="#D8342A" stroke-width="3.5" stroke-linejoin="round"/>
+  <circle cx="458" cy="195" r="4.5" fill="#D8342A"/>
+  <text x="352" y="188" font-size="9.5" fill="#B32A21" font-weight="700">3V3 → force strip leg A</text>
+  <text x="476" y="186" font-size="9.5" fill="#B32A21" font-weight="700">3V3 → pulse +</text>
+
+  <!-- 2. GND from XIAO to pulse − -->
+  <path d="M425 300 H436 V205 H550 V120" fill="none" stroke="#1B1F24" stroke-width="3.5" stroke-linejoin="round"/>
+  <text x="560" y="212" font-size="9.5" fill="#4E5761" font-weight="700">GND → pulse −</text>
+
+  <!-- 3. pulse signal down to D1 (two hops) -->
+  <path d="M582 120 V232 H465 q -7 -9 -14 0 H443 q -7 -9 -14 0 H278 V268 q 9 7 0 14 V300 H305" fill="none" stroke="#7A2E86" stroke-width="3.5" stroke-linejoin="round"/>
+  <text x="600" y="152" font-size="9.5" fill="#5E2370" font-weight="700">pulse S → D1</text>
+
+  <!-- 4. force node: index finger all the way to the 10k, tapped for D0 -->
+  <path d="M308 133 V185 H248 V668 H290" fill="none" stroke="#E5B800" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M248 275 H305" fill="none" stroke="#E5B800" stroke-width="3.5"/>
+  <circle cx="248" cy="275" r="4.5" fill="#E5B800"/>
+  <text x="258" y="266" font-size="9.5" fill="#8F6B00" font-weight="700">tap → D0</text>
+  <text x="236" y="450" font-size="9.5" fill="#8F6B00" font-weight="700" transform="rotate(-90 236 450)">force node · leg B → 10 kΩ</text>
+
+  <!-- 5. button up to D2 -->
+  <path d="M350 670 V652 q 9 -7 0 -14 V600 H262 V325 H305" fill="none" stroke="#0E9AA7" stroke-width="3.5" stroke-linejoin="round"/>
+  <text x="284" y="500" font-size="9.5" fill="#0B6E77" font-weight="700" transform="rotate(-90 284 500)">button → D2</text>
+
+  <!-- 6. V+ up to BAT+, branch to amp Vin (one hop) -->
+  <path d="M410 645 V505 H340 V454" fill="none" stroke="#B3261E" stroke-width="3.5" stroke-linejoin="round"/>
+  <circle cx="410" cy="560" r="4.5" fill="#B3261E"/>
+  <path d="M410 560 H448 q 7 -9 14 0 H668 V240 H462 V275 H470" fill="none" stroke="#B3261E" stroke-width="3.5" stroke-linejoin="round"/>
+  <text x="678" y="400" font-size="9.5" fill="#B3261E" font-weight="700" transform="rotate(-90 678 400)">switched V+ → amp Vin</text>
+  <text x="352" y="500" font-size="9.5" fill="#B3261E" font-weight="700">V+ → BAT+</text>
+
+  <!-- 7. GND up to BAT− -->
+  <path d="M455 735 V652 q 9 -7 0 -14 V495 H390 V454" fill="none" stroke="#1B1F24" stroke-width="3.5" stroke-linejoin="round"/>
+  <text x="400" y="488" font-size="9.5" fill="#4E5761" font-weight="700">GND → BAT−</text>
+
+  <!-- 8. XIAO GND to amp GND -->
+  <path d="M425 300 H451 q 7 -9 14 0 H465 V325 H470" fill="none" stroke="#1B1F24" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- 9. I2S trio -->
+  <path d="M425 350 L470 375" fill="none" stroke="#1F8A3A" stroke-width="3.5"/>
+  <path d="M425 375 L470 400" fill="none" stroke="#2B5BA8" stroke-width="3.5"/>
+  <path d="M425 400 L470 425" fill="none" stroke="#E07A1F" stroke-width="3.5"/>
+  <text x="252" y="548" font-size="9" fill="#4E5761" font-weight="700">D10/D9/D8 → LRC/BCLK/DIN</text>
+
+  <!-- wire key -->
+  <g font-size="9.5" fill="#1B1F24">
+    <rect x="700" y="600" width="20" height="5" fill="#B3261E"/><text x="726" y="606">switched V+</text>
+    <rect x="700" y="618" width="20" height="5" fill="#D8342A"/><text x="726" y="624">3V3</text>
+    <rect x="700" y="636" width="20" height="5" fill="#1B1F24"/><text x="726" y="642">GND</text>
+    <rect x="700" y="654" width="20" height="5" fill="#E5B800"/><text x="726" y="660">force node</text>
+    <rect x="700" y="672" width="20" height="5" fill="#7A2E86"/><text x="726" y="678">pulse signal</text>
+    <rect x="700" y="690" width="20" height="5" fill="#0E9AA7"/><text x="726" y="696">button</text>
+    <rect x="700" y="708" width="20" height="5" fill="#E07A1F"/><text x="726" y="714">DIN</text>
+    <rect x="700" y="726" width="20" height="5" fill="#2B5BA8"/><text x="726" y="732">BCLK</text>
+    <rect x="700" y="744" width="20" height="5" fill="#1F8A3A"/><text x="726" y="750">LRC</text>
+    <path d="M700 764 h6 q 7 -9 14 0 h6" fill="none" stroke="#1B1F24" stroke-width="2"/><text x="732" y="768">hop: crosses, no joint</text>
+  </g>
+</svg>
+    </div>
+    <figcaption>A right hand, palm up. Small arcs are crossings, not joints. The three wires inside the palm between the XIAO and the amp are 20 mm jumpers; the amp's own SD and GAIN jumpers are the dashed loops on the board itself. Note the order along the protoboard: force node, button, V plus, ground, reading left to right, which is the same order their destinations sit in the palm. That is why the four wrist wires never cross.</figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="cnt-h">
+  <h2 id="cnt-h">What crosses what</h2>
+  <div class="count">
+    <div><span class="n">4</span><span class="u">across the wrist</span></div>
+    <div><span class="n">2</span><span class="u">to the index</span></div>
+    <div><span class="n">3</span><span class="u">to the middle</span></div>
+    <div><span class="n">11</span><span class="u">inside the palm</span></div>
+    <div><span class="n">20</span><span class="u">wires total</span></div>
+    <div><span class="n">D3–D7</span><span class="u">still free</span></div>
+  </div>
+  <p class="note">The wrist is the joint that bends most and the one that breaks harnesses. Four conductors there is the floor for this layout: power out, ground back, one sensor node, one button. Everything else was pushed into the palm where it does not flex.</p>
+</section>
+
+<section aria-labelledby="tab-h">
+  <h2 id="tab-h">Every joint</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>#</th><th>From</th><th>Wire</th><th>To</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="5">Wrist, on the protoboard — no cable, these are board joints</td></tr>
+        <tr><td class="lab">W1</td><td>battery +</td><td>red 24 AWG</td><td>slide switch, then the V+ rail</td><td>Switch in the positive lead so it kills the whole rig.</td></tr>
+        <tr><td class="lab">W2</td><td>battery −</td><td>black 24 AWG</td><td>GND rail</td><td></td></tr>
+        <tr><td class="lab">W3</td><td>button, one leg</td><td>board joint</td><td>GND rail</td><td>Four legs in two pairs; each pair is joined inside. One leg from each pair or it reads permanently pressed.</td></tr>
+        <tr><td class="lab">W4</td><td>button, other leg</td><td>board joint</td><td>its own isolated pad</td><td>This pad is the button node.</td></tr>
+        <tr><td class="lab">W5</td><td>10 kΩ, one leg</td><td>board joint</td><td>its own isolated pad</td><td>This pad is the force node.</td></tr>
+        <tr><td class="lab">W6</td><td>10 kΩ, other leg</td><td>board joint</td><td>GND rail</td><td></td></tr>
+        <tr class="grp"><td colspan="5">Wrist → palm · 4 conductors · two lengths of 2-core</td></tr>
+        <tr><td class="lab">1</td><td>force node pad</td><td><span class="sw"><i style="background:#E5B800"></i>yellow</span></td><td>continues up to the index finger</td><td>Same wire as run 6. It passes through the palm and is tapped there for D0.</td></tr>
+        <tr><td class="lab">2</td><td>button node pad</td><td><span class="sw"><i style="background:#0E9AA7"></i>teal</span></td><td><span class="lab">XIAO D2</span></td><td>No resistor. Internal pull-up, pressed reads LOW. Firmware does not read it yet.</td></tr>
+        <tr><td class="lab">3</td><td>V+ rail</td><td><span class="sw"><i style="background:#B3261E"></i>red</span></td><td><span class="lab">XIAO BAT+</span> and <span class="lab">amp Vin</span></td><td>Split in the palm. Twist the two tails and solder the pair into BAT+ as one.</td></tr>
+        <tr><td class="lab">4</td><td>GND rail</td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td><span class="lab">XIAO BAT−</span></td><td>This is the only ground path between the zones. Everything else grounds through the XIAO.</td></tr>
+        <tr class="grp"><td colspan="5">Palm, internal · short jumpers, 20–40 mm</td></tr>
+        <tr><td class="lab">5</td><td>XIAO GND</td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>amp GND</td><td>Amp GAIN loops to amp GND on the board itself.</td></tr>
+        <tr><td class="lab">6</td><td>force node, mid-wire</td><td><span class="sw"><i style="background:#E5B800"></i>yellow stub</span></td><td><span class="lab">XIAO D0</span></td><td>Strip a 3 mm window in the passing wire, solder the stub on, heat-shrink over it.</td></tr>
+        <tr><td class="lab">7</td><td>XIAO D10 / D9 / D8</td><td><span class="sw"><i style="background:#1F8A3A"></i></span><span class="sw"><i style="background:#2B5BA8"></i></span><span class="sw"><i style="background:#E07A1F"></i></span></td><td>amp LRC / BCLK / DIN</td><td>Three short jumpers. Keep them together and away from the pulse wire.</td></tr>
+        <tr><td class="lab">8</td><td>amp SD</td><td>loop on the amp</td><td>amp Vin</td><td>Floating SD drifts into shutdown.</td></tr>
+        <tr><td class="lab">9</td><td>amp + / −</td><td>two leads</td><td>LRA</td><td>Either way round. Neither lead to ground.</td></tr>
+        <tr class="grp"><td colspan="5">Palm → index finger · 2 conductors · one length of 2-core</td></tr>
+        <tr><td class="lab">10</td><td>XIAO 3V3</td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>strip leg A</td><td>Also feeds the pulse sensor; split at a junction in the palm.</td></tr>
+        <tr><td class="lab">11</td><td>strip leg B</td><td><span class="sw"><i style="background:#E5B800"></i>yellow</span></td><td>down to the wrist 10 kΩ</td><td>One continuous wire, index to wrist. Do not cut it in the palm.</td></tr>
+        <tr class="grp"><td colspan="5">Palm → middle finger · 3 conductors · 2-core plus one single</td></tr>
+        <tr><td class="lab">12</td><td>XIAO 3V3 junction</td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>pulse +</td><td></td></tr>
+        <tr><td class="lab">13</td><td>XIAO GND</td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>pulse −</td><td></td></tr>
+        <tr><td class="lab">14</td><td>pulse S</td><td><span class="sw"><i style="background:#7A2E86"></i>purple</span></td><td><span class="lab">XIAO D1</span></td><td>Run this one apart from the three amp jumpers; it is the most noise-sensitive wire in the build.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section aria-labelledby="hon-h">
+  <h2 id="hon-h">One thing worth reconsidering</h2>
+  <div class="warn">
+    <b>The 10 kΩ at the wrist costs you.</b> It puts the force divider's midpoint at the far end of a 25 cm wire that
+    crosses the wrist. That node sits at 30 kΩ or so, which makes it a decent aerial, and it is the one wire that
+    picks up the amp's switching and mains hum. Moving the 10 kΩ into the palm next to the XIAO fixes both problems:
+    the node shrinks to a few centimetres, the wrist bundle drops from four conductors to three, and you no longer
+    need the mid-wire tap in joint 6. The cost is soldering one resistor inline on a lead rather than flat on a board.
+    <b>If the force channel reads noisy once assembled, this is the first thing to change.</b>
+  </div>
+  <div class="ok">
+    <b>Everything else about this layout is good.</b> The amp and the LRA sharing the palm with the XIAO keeps the
+    I²S wires short, which matters at 1.5 MHz. The battery at the wrist balances the weight away from the fingers.
+    Putting the button at the wrist means it is reachable with the other hand without touching the sensors, and the
+    protoboard gives the battery and switch somewhere solid to anchor to.
+  </div>
+</section>
+
+<section aria-labelledby="do-h">
+  <h2 id="do-h">Build order</h2>
+  <p>Each stage is testable on the dashboard over USB before the next goes on. The battery is last.</p>
+  <ol class="steps">
+    <li><b>Wrist board.</b> Cut the protoboard, lay in the V+ and GND rails, solder the button and the 10 kΩ, then the battery leads and the switch. Meter the rails: they must read open, not shorted.</li>
+    <li><b>Palm cluster.</b> Solder the amp's SD and GAIN loops first while the board is bare. Then XIAO GND to amp GND, the three I²S jumpers, and the LRA to the amp output. Glue the XIAO and amp down to the palm patch so they cannot move relative to one another.</li>
+    <li><b>Wrist to palm.</b> Four conductors, kept flat as a ribbon, in the order shown. Anchor both ends within 2 cm of the joint. Plug in USB, press the LRA switch on the dashboard: it should buzz and the force number should not dip while it runs.</li>
+    <li><b>Index finger.</b> One 2-core run. Leg A to the red, leg B to the yellow that continues down to the wrist. Solder the D0 stub onto the yellow where it passes the XIAO. Dashboard: a rest reading and a response to bending.</li>
+    <li><b>Middle finger.</b> Three conductors to the pulse sensor. Finger on, watch for BEATING.</li>
+    <li><b>Battery.</b> Switch off, meter for shorts, then connect. Board boots, dashboard reconnects over Bluetooth once USB is out.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="tips-h">
+  <h2 id="tips-h">Making it survive being worn</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Service loop at every joint</h3>
+      <p>Leave 15 to 20 mm of slack in a gentle S where the harness crosses the wrist and each knuckle. A wire pulled straight across a joint is a wire that will break at the solder joint, usually within a few hundred bends.</p>
+    </div>
+    <div class="card">
+      <h3>Anchor, then joint</h3>
+      <p>Stitch or glue the cable to the fabric within 2 cm of every board. The anchor takes the pull; the solder joint should never feel it. This is the single biggest factor in whether the glove lasts a week or a season.</p>
+    </div>
+    <div class="card">
+      <h3>Route along, not across</h3>
+      <p>Run the finger cables down the side of each finger rather than the middle of the back. The side of a finger changes length far less when you make a fist, so the cable is not stretched every time the hand closes.</p>
+    </div>
+    <div class="card">
+      <h3>Two gauges</h3>
+      <p>The 24 AWG 2-core for the wrist bundle and anything carrying battery current. The AWG30 silicone for the finger signal runs, where flexibility matters more than the milliamps. Silicone survives flexing far better than PVC.</p>
+    </div>
+  </div>
+</section>
+
+</div>

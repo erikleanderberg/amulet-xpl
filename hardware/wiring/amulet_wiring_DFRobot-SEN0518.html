@@ -1,0 +1,237 @@
+<title>Amulet Pulse Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F6; --surface:#FFFFFF; --ink:#15202B; --muted:#5A6774; --line:#D4DBE2;
+  --accent:#8F6310; --pad:#D9A441; --warn:#B4380B; --warn-bg:#FDF1EA; --ok:#18794A; --ok-bg:#EAF6EF;
+  --code-bg:#EEF1F4; --chip-bg:#E9EDF1;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+    --accent:#E3B45C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+    --code-bg:#1D2833; --chip-bg:#22303C;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151B; --surface:#172029; --ink:#E5EBF0; --muted:#95A3B0; --line:#2B3743;
+  --accent:#E3B45C; --warn:#FB8A4C; --warn-bg:#2A1A12; --ok:#4FD08C; --ok-bg:#12261B;
+  --code-bg:#1D2833; --chip-bg:#22303C;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:20px;padding-block:36px 80px;display:flex;flex-direction:column;gap:40px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:44px;font-weight:700;letter-spacing:.01em}
+h2{font-size:28px;font-weight:600}
+p{margin:0;max-width:66ch}
+code{font-family:var(--mono);font-size:.9em}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+header{display:flex;flex-direction:column;gap:12px}
+.lede{font-size:17px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta span{font-family:var(--mono);font-size:12px;background:var(--chip-bg);padding:4px 9px;border-radius:4px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+section{display:flex;flex-direction:column;gap:14px}
+
+.fixed{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:18px 20px;display:grid;gap:10px}
+.fixed h2{font-size:22px}
+.fixed ul{margin:0;padding-left:20px;display:grid;gap:6px}
+.fixed li{max-width:80ch}
+
+.plate{background:#ECEEEA;border-radius:12px;border:1px solid #C9CEC6;overflow-x:auto;padding:10px}
+.plate svg{display:block;width:100%;min-width:760px;height:auto}
+figure{margin:0;display:flex;flex-direction:column;gap:12px}
+figcaption{color:var(--muted);font-size:14px;max-width:90ch}
+
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--code-bg)}
+tr:last-child td{border-bottom:0}
+.lab{font-family:var(--mono);font-weight:600;font-size:14px}
+.sub{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.pin{font-family:var(--mono);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.pin::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--pad);box-shadow:inset 0 0 0 1.5px #8A6516}
+.sw{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;font-size:14px;font-weight:500}
+.sw i{width:26px;height:8px;border-radius:4px;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:12px;max-width:74ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:12px;font-weight:600;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;max-width:80ch}
+.warn{background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:10px;padding:14px 18px;font-size:14px;max-width:none}
+.warn b{color:var(--warn)}
+.pass{display:grid;gap:8px;background:var(--ok-bg);border-radius:10px;padding:16px 18px;border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.pass h2{font-size:22px}
+.pass p{font-size:14px}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Amulet · bench rig · step 2 of 3 · heart rate</div>
+  <h1>Amulet Pulse Wiring</h1>
+  <p class="lede">Four jumper wires from the DFRobot heart-rate and oximeter sensor straight to the XIAO. No driver board, no resistors, nothing in between.</p>
+  <div class="meta">
+    <span>Sensor <b>DFRobot SEN0518</b> (Gravity, MAX30102 chip)</span>
+    <span>Talks over <b>I²C</b>, address <b>0x57</b></span>
+    <span>Power <b>3.3 V</b> from the XIAO</span>
+    <span>Labels checked against <b>DFRobot wiki</b></span>
+  </div>
+</header>
+
+<div class="fixed" role="note">
+  <h2>What changed from the last page</h2>
+  <ul>
+    <li><b>The "MAX30102" box was your DFRobot sensor all along.</b> MAX30102 is the chip on it. It's now labelled by the product you have.</li>
+    <li><b>The purple "Pulse Sensor" on D1 is gone.</b> That was the Adafruit analog backup. You're not using it, so D1 is free.</li>
+    <li><b>Data wire colours fixed.</b> The last page had green and blue swapped. The Gravity cable is <b>green = D (data)</b> and <b>blue = C (clock)</b>. If you wired by colour from the old page, swap the two data wires.</li>
+  </ul>
+</div>
+
+<section aria-labelledby="dia-h">
+  <h2 id="dia-h">Wiring</h2>
+  <figure>
+    <div class="plate">
+<svg viewBox="0 0 900 580" role="img" aria-label="XIAO seen from above, USB-C up. The DFRobot sensor sits to the left. Its D/T pin goes by green wire to XIAO D4, C/R by blue wire to D5, GND by black wire to the ground rail, VCC by red wire to the 3.3 volt rail. The XIAO's GND and 3V3 pins feed those two rails." font-family="IBM Plex Mono, Menlo, monospace">
+  <defs>
+    <g id="gnd" fill="none" stroke="#1B1F24" stroke-width="2" stroke-linecap="round">
+      <line x1="0" y1="0" x2="0" y2="10"/><line x1="-9" y1="10" x2="9" y2="10"/><line x1="-5.5" y1="14.5" x2="5.5" y2="14.5"/><line x1="-2" y1="19" x2="2" y2="19"/>
+    </g>
+  </defs>
+
+  <!-- rails -->
+  <line x1="24" y1="30" x2="880" y2="30" stroke="#2B5BA8" stroke-width="3"/>
+  <line x1="24" y1="56" x2="880" y2="56" stroke="#D8342A" stroke-width="3"/>
+  <text x="876" y="22" text-anchor="end" font-size="11" fill="#2B5BA8" font-weight="600">− RAIL (BLUE STRIPE) = GND</text>
+  <text x="876" y="49" text-anchor="end" font-size="11" fill="#B32A21" font-weight="600">+ RAIL (RED STRIPE) = 3V3</text>
+
+  <!-- XIAO GND/3V3 to rails (already wired for the FSR) -->
+  <path d="M650 240 H740 V64 A8 8 0 0 0 740 48 V30" fill="none" stroke="#1B1F24" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="740" cy="30" r="5" fill="#1B1F24"/>
+  <path d="M650 290 H762 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="762" cy="56" r="5" fill="#D8342A"/>
+  <text x="772" y="268" font-size="10.5" fill="#5A6470">already in place</text>
+  <text x="772" y="281" font-size="10.5" fill="#5A6470">from the FSR step</text>
+
+  <!-- XIAO -->
+  <rect x="530" y="120" width="60" height="28" rx="5" fill="#A9B1B9" stroke="#6E7780"/>
+  <text x="560" y="113" text-anchor="middle" font-size="11" fill="#1B1F24" font-weight="600">USB-C</text>
+  <rect x="470" y="140" width="180" height="405" rx="12" fill="#22272E"/>
+  <text x="560" y="516" text-anchor="middle" font-size="12" fill="#F3F5F7" font-weight="600">XIAO nRF52840</text>
+  <text x="560" y="532" text-anchor="middle" font-size="10" fill="#AEB6BF">Sense · top view</text>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.5">
+    <circle cx="470" cy="190" r="7"/><circle cx="470" cy="240" r="7"/><circle cx="470" cy="290" r="7"/><circle cx="470" cy="340" r="7"/><circle cx="470" cy="390" r="7"/><circle cx="470" cy="440" r="7"/><circle cx="470" cy="490" r="7"/>
+    <circle cx="650" cy="190" r="7"/><circle cx="650" cy="240" r="7"/><circle cx="650" cy="290" r="7"/><circle cx="650" cy="340" r="7"/><circle cx="650" cy="390" r="7"/><circle cx="650" cy="440" r="7"/><circle cx="650" cy="490" r="7"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#F3F5F7">
+    <text x="486" y="189">D0</text><text x="486" y="239">D1</text><text x="486" y="289">D2</text><text x="486" y="339">D3</text><text x="486" y="389">D4</text><text x="486" y="439">D5</text><text x="486" y="489">D6</text>
+    <text x="634" y="189" text-anchor="end">5V</text><text x="634" y="239" text-anchor="end">GND</text><text x="634" y="289" text-anchor="end">3V3</text><text x="634" y="339" text-anchor="end">D10</text><text x="634" y="389" text-anchor="end">D9</text><text x="634" y="439" text-anchor="end">D8</text><text x="634" y="489" text-anchor="end">D7</text>
+  </g>
+  <g font-size="10" fill="#AEB6BF">
+    <text x="486" y="203">A0</text><text x="486" y="253">A1</text><text x="486" y="303">A2</text><text x="486" y="353">A3</text><text x="486" y="403">SDA</text><text x="486" y="453">SCL</text><text x="486" y="503">TX</text>
+    <text x="634" y="203" text-anchor="end">USB</text><text x="634" y="253" text-anchor="end">ground</text><text x="634" y="303" text-anchor="end">3.3 V</text><text x="634" y="503" text-anchor="end">RX</text>
+  </g>
+
+  <!-- occupied / free pins, for context -->
+  <g font-size="10.5" fill="#6B7580">
+    <text x="456" y="194" text-anchor="end">FSR (already wired)</text>
+    <text x="456" y="244" text-anchor="end">free</text>
+    <text x="456" y="294" text-anchor="end">free (flex later)</text>
+    <text x="456" y="344" text-anchor="end">free</text>
+    <text x="456" y="494" text-anchor="end">free</text>
+    <text x="664" y="194">leave empty</text>
+    <text x="664" y="394">amp + LRA (next)</text>
+  </g>
+
+  <!-- DFRobot SEN0518 -->
+  <rect x="60" y="290" width="200" height="190" rx="10" fill="#FFFFFF" stroke="#1B1F24" stroke-width="2"/>
+  <circle cx="120" cy="385" r="26" fill="#2A2F36"/>
+  <circle cx="120" cy="385" r="12" fill="#4A0F14"/>
+  <circle cx="113" cy="381" r="3.5" fill="#E14B4B"/><circle cx="126" cy="389" r="3.5" fill="#7A2E86"/>
+  <text x="120" y="432" text-anchor="middle" font-size="10" fill="#5A6470">finger window</text>
+  <text x="76" y="312" font-size="13" font-weight="600" fill="#1B1F24">DFRobot SEN0518</text>
+  <text x="76" y="466" font-size="10.5" fill="#5A6470">Gravity · MAX30102</text>
+  <!-- connector -->
+  <rect x="226" y="312" width="34" height="150" rx="4" fill="#F4F1E8" stroke="#1B1F24" stroke-width="1.5"/>
+  <g font-size="11" font-weight="700" text-anchor="end">
+    <text x="220" y="344" fill="#157A4E">D/T</text>
+    <text x="220" y="384" fill="#1F55B8">C/R</text>
+    <text x="220" y="424" fill="#1B1F24">GND</text>
+    <text x="220" y="464" fill="#B32A21">VCC</text>
+  </g>
+  <g fill="#D9A441" stroke="#8A6516" stroke-width="1.5">
+    <circle cx="260" cy="340" r="5.5"/><circle cx="260" cy="380" r="5.5"/><circle cx="260" cy="420" r="5.5"/><circle cx="260" cy="460" r="5.5"/>
+  </g>
+
+  <!-- D/T green -> D4 -->
+  <path d="M260 340 H370 V390 H470" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M260 340 H370 V390 H470" fill="none" stroke="#1C9A62" stroke-width="4.5" stroke-linejoin="round"/>
+  <text x="315" y="332" text-anchor="middle" font-size="10.5" fill="#157A4E" font-weight="600">green</text>
+  <!-- C/R blue -> D5 -->
+  <path d="M260 380 H336 V440 H470" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M260 380 H336 V440 H470" fill="none" stroke="#2D6CDF" stroke-width="4.5" stroke-linejoin="round"/>
+  <text x="404" y="432" text-anchor="middle" font-size="10.5" fill="#1F55B8" font-weight="600">blue</text>
+  <!-- GND black -> ground -->
+  <path d="M260 420 H296" fill="none" stroke="#1B1F24" stroke-width="4.5"/>
+  <use href="#gnd" x="296" y="420"/>
+  <!-- VCC red -> + rail -->
+  <path d="M260 460 H306 V520 H40 V56" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M260 460 H306 V520 H40 V56" fill="none" stroke="#D8342A" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="40" cy="56" r="5" fill="#D8342A"/>
+  <text x="150" y="512" text-anchor="middle" font-size="10.5" fill="#B32A21" font-weight="600">red → + rail (3.3 V)</text>
+
+  <!-- legend -->
+  <g font-size="11" fill="#1B1F24">
+    <use href="#gnd" x="540" y="556"/>
+    <text x="556" y="568">= black wire to the − rail</text>
+  </g>
+</svg>
+    </div>
+    <figcaption>The XIAO is seen from above with USB-C at the top, as it sits in the breadboard. The two data wires land on the left edge, 5th and 6th pin down. Power comes off the rails you already built for the FSR, so no new wire goes to the XIAO's own GND or 3V3 pins.</figcaption>
+  </figure>
+</section>
+
+<section aria-labelledby="tab-h">
+  <h2 id="tab-h">The four wires</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Sensor pin</th><th>Wire</th><th>Goes to</th><th>What it carries</th></tr></thead>
+    <tbody>
+      <tr><td><span class="lab">D/T</span></td><td><span class="sw"><i style="background:#1C9A62"></i>green</span></td><td><span class="pin">D4</span><span class="sub">left edge, 5th pin down · SDA</span></td><td>I²C data</td></tr>
+      <tr><td><span class="lab">C/R</span></td><td><span class="sw"><i style="background:#2D6CDF"></i>blue</span></td><td><span class="pin">D5</span><span class="sub">left edge, 6th pin down · SCL</span></td><td>I²C clock</td></tr>
+      <tr><td><span class="lab">GND</span></td><td><span class="sw"><i style="background:#1B1F24"></i>black</span></td><td>− rail<span class="sub">blue stripe</span></td><td>Ground</td></tr>
+      <tr><td><span class="lab">VCC</span></td><td><span class="sw"><i style="background:#D8342A"></i>red</span></td><td>+ rail<span class="sub">red stripe, 3.3 V from the XIAO</span></td><td>Power</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Wire by the letters printed next to the connector, not by colour alone. Colours are what DFRobot's Gravity cable uses; loose jumpers can be any colour.</p>
+</section>
+
+<section aria-labelledby="do-h">
+  <h2 id="do-h">Do it</h2>
+  <ol class="steps">
+    <li><span><b>Unplug USB</b> from the XIAO.</span></li>
+    <li><span>If the sensor board has a small <b>I²C / UART switch</b>, slide it to <b>I²C</b>. The same two pins become TX/RX in UART mode, which is why they're labelled D/T and C/R.</span></li>
+    <li><span><b>Green:</b> sensor <b>D/T</b> → XIAO <b>D4</b>.</span></li>
+    <li><span><b>Blue:</b> sensor <b>C/R</b> → XIAO <b>D5</b>.</span></li>
+    <li><span><b>Black:</b> sensor <b>GND</b> → − rail.</span></li>
+    <li><span><b>Red:</b> sensor <b>VCC</b> → + rail. That's 3.3 V. The sensor also takes 5 V, but don't use the XIAO's 5V pin: it would push 5 V onto the data lines, and the XIAO's pins aren't 5 V tolerant.</span></li>
+    <li><span>Plug USB back in.</span></li>
+  </ol>
+  <p class="warn"><b>Easiest mistake:</b> D and C swapped. Nothing breaks, the sensor just doesn't answer. If the test below finds nothing, swap green and blue at the XIAO end.</p>
+</section>
+
+<div class="pass">
+  <h2>How you'll know it works</h2>
+  <p>A test sketch scans I²C and should report a device at <code>0x57</code>, then prints heart rate and SpO₂ with a fingertip resting still on the window. The readings take about 4 seconds to settle.</p>
+  <p>Open question from the project doc: DFRobot's library gives a <i>computed</i> heart rate every few seconds, not the beat-by-beat pulse waveform HRV needs. The same test tells us which one this board can give.</p>
+</div>
+
+</div>

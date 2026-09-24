@@ -1,0 +1,44 @@
+# ---- recorded data: personal physiological data, never committed ----
+software/onset-ml/data/sessions/*
+software/onset-ml/data/captures/*
+software/onset-ml/data/exports/*
+software/onset-ml/data/synthetic/*
+software/onset-ml/data/.feat_cache/
+software/onset-ml/captures/
+!software/onset-ml/data/**/.gitkeep
+*.wav
+dream-journal.md
+ledger.csv
+
+# ---- models and weights ----
+software/onset-ml/models/
+*.pt
+*.bin
+*.safetensors
+*.mlmodelc/
+
+# ---- python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+results.tsv
+run*.log
+*.log
+
+# ---- compiled / build artefacts ----
+software/onset-ml/tools/apple_stt/apple-stt
+firmware/**/build/
+*.uf2
+*.hex
+*.o
+
+# ---- CAD scratch: keep curated models, not iteration dumps ----
+hardware/cad/**/build_report.json
+hardware/cad/**/mesh-verification.json
+*.f3d.lock
+
+# ---- os ----
+.DS_Store
+Thumbs.db
