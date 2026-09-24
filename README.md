@@ -24,29 +24,32 @@ protocol that runs identically over USB serial and Bluetooth:
 
 ```mermaid
 flowchart LR
-    subgraph Glove["🧤 Glove — XIAO nRF52840 Sense"]
-        A["Flex strip<br/><sub>index finger · A0</sub>"]
-        B["PPG<br/><sub>middle finger · A1</sub>"]
-        C["Button<br/><sub>D2</sub>"]
-        D["PDM mic<br/><sub>on-board</sub>"]
-        E["Drake HF LRA<br/><sub>160 Hz · I²S amp</sub>"]
+    subgraph G["Glove · XIAO nRF52840 Sense"]
+        SENS["Flex + PPG + link RSSI"]
+        BTN["Button"]
+        MIC["PDM microphone"]
+        LRA["Drake HF LRA"]
     end
-    subgraph Bridge["🔌 bench_bridge.py :8787"]
-        F["single owner of the link<br/>USB serial or BLE NUS"]
+    subgraph B["bench_bridge.py :8787"]
+        BR["single owner of the link<br/>USB serial or BLE"]
     end
-    subgraph Lab["🧠 Onset Lab :8790"]
-        G["features → detector"]
-        H["cue decision"]
-        I["session filing"]
-        J["voice note → transcript"]
+    subgraph L["Onset Lab :8790"]
+        DET["features to detector"]
+        SESS["session filing"]
+        VN["voice note to transcript"]
     end
-    A & B & C & D --> F
-    F --> G --> H -->|tap| F --> E
-    G --> I
-    D -->|audio| J --> I
-    style Glove fill:#FBF1DC,stroke:#9A6200,color:#15202B
-    style Bridge fill:#E6EEF9,stroke:#2D5DA8,color:#15202B
-    style Lab fill:#E3F4EA,stroke:#18794A,color:#15202B
+    SENS --> BR
+    BTN --> BR
+    MIC --> BR
+    BR --> DET
+    BR --> VN
+    DET -->|cue| BR
+    BR --> LRA
+    DET --> SESS
+    VN --> SESS
+    style G fill:#FBF1DC,stroke:#9A6200,color:#15202B
+    style B fill:#E6EEF9,stroke:#2D5DA8,color:#15202B
+    style L fill:#E3F4EA,stroke:#18794A,color:#15202B
 ```
 
 **No intelligence runs on the board.** It streams raw samples and plays what it is told. Every
