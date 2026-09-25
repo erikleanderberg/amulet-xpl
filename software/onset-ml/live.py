@@ -117,6 +117,8 @@ voice_done = threading.Event()   # set when AEND closes a download
 btn = dict(last_ms=None, presses=0, down=False, t=0.0)
 battery: dict = {}
 mic = dict(rms=0, peak=0, t=0.0)
+# The board owns the session clock now, so the host mirrors it rather than driving it.
+board_sess = dict(state='idle', elapsed=0, left=0, takes=0, t=0.0)
 sess = dict(active=False, stamp=None, name='', start_host=None, start_t=None, last=None)   # current nap session
 REPLAY_SRC = None
 DATA_DIRS = ['data/sessions', 'data/synthetic']
@@ -343,7 +345,7 @@ def on_line(line: str, host_t: float | None = None) -> None:
     """One serial line (without host time). host_t = the bridge/capture host_time, if known."""
     parts = line.split(',')
     typ = parts[0]
-    dbl = False; push = None
+    dbl = False; push = None; phase_change = None; take_ready = False
     with lock:
         try:
             if typ == 'S':                                          # v2: ms,fsr,pulse,thresh[,ignored]
@@ -386,6 +388,13 @@ def on_line(line: str, host_t: float | None = None) -> None:
                 buf.rssi_times.append(ht); buf.rssi_times = [x for x in buf.rssi_times if ht - x <= 2.0]
                 buf.rssi_stats = dict(fw=src, interval_ms=None, fw_hz=None, dropped=None,
                                       obs_hz=round(len(buf.rssi_times) / 2.0, 1), gaps=0, link='streaming')
+            elif typ == 'G':                                    # G,<ms>,<state>,<elapsed>,<left>,<takes>
+                prev = board_sess['state']
+                board_sess.update(state=parts[2], elapsed=int(parts[3]), left=int(parts[4]),
+                                  takes=int(parts[5]), t=host_t or time.time())
+                if parts[2] != prev:
+                    phase_change = (prev, parts[2])
+                push = dict(type='board_session', t=round(buf.t_now, 2), **{k: v for k, v in board_sess.items() if k != 't'})
             elif typ == 'K':                                    # K,<ms>,<down>,<count>  button edge
                 ms = float(parts[1]); down = parts[2] == '1'
                 btn['down'] = down; btn['t'] = host_t or time.time()
@@ -409,6 +418,8 @@ def on_line(line: str, host_t: float | None = None) -> None:
             elif typ in ('A', 'AEND'):                          # voice note audio coming back
                 if voice.feed(typ, parts[1:]):
                     voice_done.set()
+            elif typ == 'I' and 'rec done' in line:             # a take finished on the board
+                take_ready = True
             elif typ == 'N':
                 txt = ','.join(parts[1:]).strip()
                 buf.notes.append((buf.t_now, txt))
@@ -418,6 +429,10 @@ def on_line(line: str, host_t: float | None = None) -> None:
         due = buf.t_now >= buf.next_feat_t
     if push:
         broadcast(push)
+    if phase_change:
+        threading.Thread(target=on_phase_change, args=phase_change, daemon=True).start()
+    if take_ready:
+        threading.Thread(target=collect_take, daemon=True).start()
     if dbl:
         threading.Thread(target=on_double_click, daemon=True).start()
     if due:
@@ -514,6 +529,51 @@ def start_voice_note(reason: str) -> dict:
     return dict(ok=True, stamp=stamp)
 
 
+def on_phase_change(prev: str, now: str) -> None:
+    """Follow the board through its own session: it is the clock, the host is the recorder."""
+    event(f'board session: {prev} -> {now}')
+    if now == 'calib' and not sess['active']:
+        with lock:
+            buf.reset()
+        r = session_start('', '')                    # start recording alongside the board
+        if not r.get('ok'):
+            event(f'could not start host session: {r.get("error")}')
+    elif now == 'report':
+        event('session over: wake cue fired, board is waiting for spoken takes')
+    elif now in ('done', 'idle') and sess['active']:
+        session_end('')
+
+
+def collect_take() -> None:
+    """The board finished an 8 s take and is holding it in RAM. Ask for it."""
+    st = voice.snapshot()['state']
+    if st in ('downloading', 'transcribing'):
+        return
+    stamp = sess.get('stamp') or time.strftime('%Y%m%d-%H%M%S')
+    voice_done.clear()
+    voice.begin('button', stamp, 0.0)
+    voice.downloading()
+    broadcast_voice()
+    if not (bridge_call('/cmd', dict(c='d')) or {}).get('sent'):
+        voice.fail('could not send d -- bridge down'); broadcast_voice(); return
+    event('take finished on the board; downloading')
+    if not voice_done.wait(timeout=90.0):
+        voice.fail('timed out waiting for AEND'); broadcast_voice(); return
+    n = board_sess.get('takes') or 1
+    path = str(voice_dir() / f'voice-{stamp}-{n}.wav')
+    info = voice.save_wav(path)
+    if not info.get('ok'):
+        broadcast_voice(); return
+    event(f'take {n}: {info["seconds"]:.1f} s, peak {info["peak"]}/32767')
+    broadcast_voice()
+    res = stt.transcribe(path, second_opinion=SECOND_OPINION)
+    paths = journal.save(f'{stamp}-{n}', path, res, out_dir=voice_dir(), session_name=sess.get('name', ''))
+    voice.finish(res, paths['txt'])
+    event(f'take {n} ({res.get("backend")}): {res.get("text") or res.get("note") or "(nothing heard)"}')
+    journal.update_session_json(stamp, path, res, paths)
+    broadcast_voice()
+
+
 def on_double_click() -> None:
     """The glove's own end-of-session gesture: stop recording, then take the spoken report."""
     event('button: double-click')
@@ -544,7 +604,8 @@ def backfill_payload() -> dict:
                     marks=[[round(t, 2), txt] for t, txt in buf.notes if t >= t_cut],
                     bpm=buf.beat_bpm[-1] if buf.beat_bpm else None,
                     ibi=buf.beat_ibi[-1] if buf.beat_ibi else None,
-                    voice=voice.snapshot(), battery=dict(battery), mic=dict(mic))
+                    voice=voice.snapshot(), battery=dict(battery), mic=dict(mic),
+                    board_session={k: v for k, v in board_sess.items() if k != 't'})
 
 
 def replay(path: str, speed: float) -> None:
@@ -653,6 +714,7 @@ class H(BaseHTTPRequestHandler):
                             serial=haptic.serial_line(cfg['pattern']), rssi_stats=buf.rssi_stats,
                             session={k: v for k, v in sess.items() if k != 'last'},
                             voice=voice.snapshot(), battery=battery, mic=mic, rec_seconds=REC_SECONDS,
+                            board_session={k: v for k, v in board_sess.items() if k != 't'},
                             button={k: v for k, v in btn.items() if k != 'last_ms'},
                             stt=dict(zip(('backend', 'hint'), stt.available()))))
         elif self.path == '/voice.wav':

@@ -14,9 +14,12 @@ from __future__ import annotations
 import argparse, base64, json, math, os, queue, random, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-FS, MIC_HZ, REC_S = 100, 16000, 3.0
+FS, MIC_HZ, REC_S = 100, 8000, 8.0
+# Compressed so a full session runs in seconds; --real uses the firmware's own timings.
+CALIB_S, RUN_S = 6.0, 20.0
 clients: set[queue.Queue] = set()
-state = dict(recording=False, rec_at=0.0, dumping=False, presses=0, ms=0)
+state = dict(recording=False, rec_at=0.0, dumping=False, presses=0, ms=0,
+             sess='idle', sess_t0=0.0, takes=0)
 
 
 def push(lines: list[str]) -> None:
@@ -90,11 +93,38 @@ def dump(pcm: bytes) -> None:
     state['dumping'] = False
 
 
+def sess_go(st: str) -> None:
+    state['sess'] = st; state['sess_t0'] = time.time()
+    push([sess_line()])
+
+
+def sess_line() -> str:
+    el = int(time.time() - state['sess_t0']) if state['sess'] != 'idle' else 0
+    left = 0
+    if state['sess'] == 'calib': left = max(0, int(CALIB_S) - el)
+    elif state['sess'] == 'run': left = max(0, int(RUN_S) - el)
+    return f"G,{state['ms']},{state['sess']},{el},{left},{state['takes']}"
+
+
+def sess_service() -> None:
+    if state['sess'] == 'idle': return
+    el = time.time() - state['sess_t0']
+    if state['sess'] == 'calib' and el >= CALIB_S:
+        push(['I,calibration done -- watching']); sess_go('run')
+    elif state['sess'] == 'run' and el >= RUN_S:
+        push(['I,session over -- wake cue', 'I,press the button to record a take, hold it to finish'])
+        sess_go('report')
+
+
 def streamer() -> None:
     seq = 0
+    last_g = 0.0
     while True:
         time.sleep(0.01)
         state['ms'] += 10; ms = state['ms']; seq += 1
+        sess_service()
+        if time.time() - last_g >= 1.0 and state['sess'] != 'idle':
+            last_g = time.time(); push([sess_line()])
         t = ms / 1000.0
         fsr = 250 + int(6 * math.sin(t / 7))
         ppg = 470 + int(120 * math.sin(2 * math.pi * 1.05 * t) * (0.6 + 0.4 * math.sin(t / 3)))
@@ -149,6 +179,11 @@ class H(BaseHTTPRequestHandler):
             if c == 'r':
                 state.update(recording=True, rec_at=time.time())
                 push([f'I,recording {int(REC_S)} s ...'])
+            elif c == 'x':
+                state['takes'] = 0; sess_go('calib')
+                push(['I,session start'])
+            elif c == 'y':
+                sess_go('idle'); push(['I,session aborted'])
             elif c == 'd':
                 if state['dumping']:
                     push(['I,already dumping'])
@@ -159,12 +194,25 @@ class H(BaseHTTPRequestHandler):
             self._json(dict(sent=True, via='fake'))
         elif self.path == '/button':                     # stand in for a finger on the glove
             clicks = int(d.get('clicks', 1)); gap = float(d.get('gap_ms', 200))
+            hold = float(d.get('hold_ms', 0))
             def _press():
                 for _ in range(clicks):
-                    state['presses'] += 1; ms = state['ms']
-                    push([f'K,{ms},1,{state["presses"]}'])
-                    time.sleep(0.05)
+                    state['presses'] += 1
+                    push([f'K,{state["ms"]},1,{state["presses"]}'])
+                    time.sleep(max(0.05, hold / 1000.0))
                     push([f'K,{state["ms"]},0,{state["presses"]}'])
+                    # the firmware acts on the gesture itself; mirror that here
+                    if hold >= 1200:
+                        if state['sess'] == 'report':
+                            push([f'I,report finished: {state["takes"]} take(s)']); sess_go('done')
+                        elif state['sess'] in ('calib', 'run'):
+                            sess_go('idle')
+                    elif state['sess'] in ('idle', 'done'):
+                        state['takes'] = 0; sess_go('calib'); push(['I,session start'])
+                    elif state['sess'] == 'report' and not state['recording']:
+                        state['takes'] += 1
+                        state.update(recording=True, rec_at=time.time())
+                        push([f'I,take {state["takes"]} recording {int(REC_S)} s ...'])
                     time.sleep(gap / 1000.0)
             threading.Thread(target=_press, daemon=True).start()
             self._json(dict(ok=True, clicks=clicks))
