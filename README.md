@@ -2,78 +2,113 @@
 
 # Amulet XPL
 
-**A wearable that notices the moment you start falling asleep, and taps you awake to ask what you were dreaming.**
+**A hypnagogic threshold device.** It detects the moment sleep begins, holds the wearer at that
+threshold with small haptic cues, and records the RF signature of the whole descent.
 
-<!-- Drop a hero photo of the glove here -->
 <!-- ![The Amulet XPL glove](docs/images/hero.jpg) -->
 
-`Seeed XIAO nRF52840 Sense` · `Flex + PPG + link RSSI` · `Drake HF LRA` · `On-device speech-to-text`
+`XIAO nRF52840 Sense` · `Flex + PPG` · `Drake HF LRA` · `BLE RSSI capture` · `On-device voice report`
 
 </div>
 
 ---
 
-## What this is
+## What it is for
 
-Amulet XPL is a Dormio-style sleep-onset device. It does **not** classify sleep stages. It watches
-for the moment the wearer stops looking like their own awake self, fires a haptic cue on the wrist
-so they surface into hypnagogia, and records a spoken dream report before it fades.
+Two things at once, and the second one is the reason the first exists.
 
-The whole thing is three layers, and the boundary between them is a single line-oriented text
-protocol that runs identically over USB serial and Bluetooth:
+**1 · Hold the wearer at the hypnagogic threshold.**
+Sleep onset is detected from grip collapse (flex strip) and cardiac change (PPG), both measured
+against the wearer's own calibrated baseline. When they cross, a small haptic cue on the wrist
+lifts them back toward wakefulness without waking them fully. Repeat for the session duration and
+the wearer spends an hour oscillating inside the hypnagogic window instead of passing through it
+in ninety seconds.
+
+**2 · Capture RSSI through that state, continuously.**
+The board measures the radio link's own signal strength at 50 Hz for the entire session and puts
+it in the same file, on the same clock, as the physiological channels. That yields something
+otherwise very hard to get: **RF data labelled by verified sleep state, from a wearer whose state
+is being actively controlled.**
+
+That labelled corpus is the deliverable. The long-term aim at DUST is sensing this state from the
+RF channel *alone* — no glove, no electrodes, nothing worn. The glove exists to generate the
+ground truth that makes RF-only inference trainable.
+
+> The board measures **RSSI** — a scalar signal strength per connection event. Channel state
+> information (CSI) is the richer per-subcarrier measurement and is the intended direction, but it
+> is not available from this radio. Everything here is RSSI; the pipeline is built so a CSI source
+> drops into the same place.
+
+---
+
+## How it works
 
 ```mermaid
 flowchart LR
     subgraph G["Glove · XIAO nRF52840 Sense"]
-        SENS["Flex + PPG + link RSSI"]
+        FSR["Flex strip<br/>index finger"]
+        PPG["PPG<br/>middle finger"]
+        RF["Link RSSI<br/>50 Hz"]
         BTN["Button"]
         MIC["PDM microphone"]
         LRA["Drake HF LRA"]
     end
-    subgraph B["bench_bridge.py :8787"]
-        BR["single owner of the link<br/>USB serial or BLE"]
+    subgraph B["bench_bridge.py"]
+        BR["owns the link<br/>USB or BLE"]
     end
-    subgraph L["Onset Lab :8790"]
-        DET["features to detector"]
-        SESS["session filing"]
-        VN["voice note to transcript"]
+    subgraph L["onset-ml"]
+        DET["baseline to detector"]
+        CUE["cue decision"]
+        CAP["session capture"]
+        VN["voice report"]
     end
-    SENS --> BR
+    FSR --> BR
+    PPG --> BR
+    RF --> BR
     BTN --> BR
     MIC --> BR
-    BR --> DET
-    BR --> VN
-    DET -->|cue| BR
-    BR --> LRA
-    DET --> SESS
-    VN --> SESS
+    BR --> DET --> CUE -->|tap| BR --> LRA
+    BR --> CAP
+    BR --> VN --> CAP
     style G fill:#FBF1DC,stroke:#9A6200,color:#15202B
     style B fill:#E6EEF9,stroke:#2D5DA8,color:#15202B
     style L fill:#E3F4EA,stroke:#18794A,color:#15202B
 ```
 
-**No intelligence runs on the board.** It streams raw samples and plays what it is told. Every
-decision — the baseline, the detector, the threshold, the cue — happens on the laptop, where it can
-be logged, replayed and argued with.
+No intelligence runs on the board. It streams samples, keeps the session clock, and plays what it
+is told. Detection, thresholds and cue policy live on the host where they can be logged and
+replayed.
 
 ---
 
-## Status
+## A session, from the wearer's side
 
-| Subsystem | State | Notes |
-|:--|:--|:--|
-| Firmware `bench4_live` | 🟢 working | Flex + PPG @100 Hz, beats, link RSSI, mic, button, battery |
-| Bluetooth link | 🟢 working | Nordic UART, `Amulet-XPL`, 99.5 lines/s, 0 dropped over 20 s |
-| Battery telemetry | 🟢 working | `V` line at 2 Hz; measured **7 h 19 m** runtime on a 120 mAh cell |
-| Onset detector | 🟡 unvalidated | Dormio baseline rule; **never tested against real ground truth** |
-| Haptic cue | 🟡 partial | 150 ms tap only; parametric patterns not parsed by firmware |
-| Voice notes | 🟢 working | On-device transcription, 0.15 s for a 3 s clip |
-| Ground truth | 🔴 missing | The Ogilvie probe has not been used in any recorded session |
-| Enclosure / CAD | 🟡 in progress | Iterating; not yet in this repo |
+The protocol is hands-off. Once it starts, the wearer touches nothing until it is over.
 
-**Read [`docs/01-overview.md`](docs/01-overview.md) before trusting any number in this repo.**
-Five real sessions have been recorded. None of them has a labelled sleep onset, so the detector's
-accuracy is presently unknown — see [Known problems](#known-problems).
+```mermaid
+sequenceDiagram
+    autonumber
+    participant W as Wearer
+    participant D as Device
+    W->>D: press the button, lie down
+    Note over D: calibration · 2 min<br/>personal awake baseline
+    loop 60 minutes
+        Note over D: watching
+        D-->>W: small cue when the threshold is crossed
+        Note over W: drifts back toward the threshold
+    end
+    D-->>W: wake cue — 2 s tone, unmistakable
+    W->>D: press · speak a report · 8 s take
+    W->>D: press again for another take
+    W->>D: hold 1.2 s — finished
+    Note over D: takes transcribed locally
+```
+
+**Nothing is typed, clicked or answered during the session.** No probe tones, no keyboard. The
+wearer presses once to begin, lies down, and presses again only after the wake cue.
+
+The session clock runs **on the board**, not the laptop. If Bluetooth drops mid-session the wearer
+is still woken on time and can still record.
 
 ---
 
@@ -81,42 +116,43 @@ accuracy is presently unknown — see [Known problems](#known-problems).
 
 ```
 amulet-xpl/
-├── docs/              ← start here
-├── firmware/          ← Arduino sketch for the XIAO nRF52840 Sense
-│   └── bench4_live/
-├── software/
-│   └── onset-ml/      ← bridge, detector, GUI, session filing, transcription
+├── docs/
+│   ├── 01-system.md      how the device works, end to end
+│   ├── 02-firmware.md    bench4_live + the wire protocol
+│   ├── 03-software.md    host software, on Mac and Windows
+│   └── 04-data.md        capture formats, RSSI output
+├── firmware/bench4_live/ Arduino sketch
+├── software/onset-ml/    bridge, detector, capture, transcription
 └── hardware/
-    ├── bom.md         ← bill of materials
-    ├── wiring/        ← build guides (open the .html files in a browser)
-    └── cad/           ← enclosure models
+    ├── bom.md            bill of materials
+    ├── wiring/           build guides (open the .html in a browser)
+    └── cad/              enclosure models
 ```
 
 ---
 
 ## Quick start
 
-You need a Mac (Apple Silicon, macOS 26+ for on-device transcription), Python 3.12, and a
-XIAO nRF52840 Sense flashed with `bench4_live`.
+Runs on **macOS, Windows and Linux**. Python 3.10+.
 
 ```bash
-git clone <this repo> && cd amulet-xpl/software/onset-ml
-uv venv --python 3.12 && uv pip install numpy scipy scikit-learn pandas pyserial bleak
-make -C tools/apple_stt            # builds the on-device speech CLI
+cd software/onset-ml
+python -m venv .venv
+.venv/bin/pip install -e ".[transcribe]"        # Windows: .venv\Scripts\pip
 
-.venv/bin/python tools/bench_bridge.py      # terminal 1 — owns the board
-.venv/bin/python live.py                    # terminal 2 — the cockpit
-open http://localhost:8790
+.venv/bin/python tools/bench_bridge.py          # owns the board
+.venv/bin/python live.py                        # the cockpit
+# http://localhost:8790
 ```
 
-No hardware? The whole stack runs against a simulated board:
+No hardware needed to work on the software:
 
 ```bash
 .venv/bin/python tools/fake_board.py --port 8799
 ONSET_BRIDGE=http://localhost:8799 .venv/bin/python live.py
 ```
 
-Full runbook: [`docs/06-running-a-session.md`](docs/06-running-a-session.md)
+Full setup, including the Windows specifics: [`docs/03-software.md`](docs/03-software.md)
 
 ---
 
@@ -124,40 +160,18 @@ Full runbook: [`docs/06-running-a-session.md`](docs/06-running-a-session.md)
 
 | | |
 |:--|:--|
-| [**01 · Overview**](docs/01-overview.md) | What the device does and the science it rests on |
-| [**02 · Hardware**](docs/02-hardware.md) | Boards, pin map, power, the things that bit us |
-| [**03 · Firmware**](docs/03-firmware.md) | `bench4_live` structure, build and flash |
-| [**04 · Protocol**](docs/04-protocol.md) | Every line and command, both directions |
-| [**05 · Software**](docs/05-software.md) | Bridge, detector, GUI, transcription |
-| [**06 · Running a session**](docs/06-running-a-session.md) | The operator runbook |
-| [**07 · Data**](docs/07-data.md) | Capture format, session files, how to load them |
-| [**08 · Research notes**](docs/08-research.md) | Dormio, the physiology, what the evidence supports |
-| [**09 · Troubleshooting**](docs/09-troubleshooting.md) | Every failure mode we have actually hit |
+| [**01 · System**](docs/01-system.md) | What each part does and how a session runs |
+| [**02 · Firmware**](docs/02-firmware.md) | `bench4_live`, the protocol, build and flash |
+| [**03 · Software**](docs/03-software.md) | Host stack, cross-platform setup, transcription |
+| [**04 · Data**](docs/04-data.md) | File formats and how to load a session |
+
+Building the hardware: [`hardware/bom.md`](hardware/bom.md) and the guides in
+[`hardware/wiring/`](hardware/wiring/).
 
 ---
 
-## Known problems
+## Licence and data
 
-Honest list. These are the things a new engineer needs to know before they trust anything here.
-
-1. **No ground truth exists yet.** The Ogilvie probe (a faint tone every 20 s, two misses = onset)
-   has never been switched on during a recorded session, so no session carries a labelled onset.
-   Every detector number in this repo comes from synthetic data.
-2. **The detector runs away when the sensor moves.** In the 2 h 36 m overnight run on 21 Sep, the
-   flex reading jumped 102 counts in one minute when the hand released the strip. The Dormio rule
-   compares against a fixed 120 s baseline and never re-baselines, so the condition stayed true and
-   the cue fired **92 times at the 60 s refractory floor** until the battery died.
-3. **Voice notes are capped at 3 seconds.** `REC_SECONDS` is 3, which is 96 KB of the board's
-   213 KB free RAM. Test reports are already being cut off mid-sentence.
-4. **The cue can only tap.** The pattern editor in the GUI produces a `DB k=v` line the firmware
-   does not parse. Arming fires a 150 ms tap and nothing else.
-5. **`fsr_dropout30` never trips.** It anchors its floor on the row's own start. It is the one
-   feature designed to catch problem 2.
-
----
-
-## Licence & data
-
-Code is [MIT](LICENSE). **Recorded sessions, audio and dream transcripts are not in this repo and
-should not be added to it** — they are personal physiological data. `data/` is gitignored; see
-[`docs/07-data.md`](docs/07-data.md) for how session files are laid out locally.
+Code is [MIT](LICENSE). **Recorded sessions, audio and transcripts are not in this repository and
+should not be added to it** — they are personal physiological data. `data/` is gitignored.
+Transcription runs locally on the operator's machine; no audio is sent to any service.

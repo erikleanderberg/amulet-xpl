@@ -34,7 +34,7 @@ def show_backends() -> None:
     cur, label = stt.available()
     print(f'{"backend":<16} {"installed":<10} what it is')
     print('-' * 74)
-    for b in stt.ORDER + ['wispr']:
+    for b in stt.ORDER:
         ok = stt.installed(b)
         mark = 'yes' if ok else 'no'
         star = ' <- default' if b == cur else ''
@@ -44,7 +44,7 @@ def show_backends() -> None:
         print(f'active: {label}')
     else:
         print(label)
-    print('\npin one with  ONSET_STT=apple  (comma-separated list sets the fallback order)')
+    print('\npin one with  ONSET_STT=faster_whisper  (comma-separated list sets the fallback order)')
 
 
 def one(path: str, backend: str | None, second: bool, quiet: bool) -> dict:
@@ -72,7 +72,7 @@ def compare(path: str) -> None:
     if not m.get('has_speech'):
         print('VAD: no speech in this clip — nothing would be sent to a recogniser.'); return
     print()
-    for b in stt.ORDER + ['wispr']:
+    for b in stt.ORDER:
         if not stt.installed(b):
             print(f'{b:<16} (not installed)'); continue
         t0 = time.time()

@@ -1,12 +1,19 @@
 [project]
 name = "onset-ml"
-version = "0.1.0"
-description = "Amulet XPL sleep-onset detector: data, features, models, autoresearch loop, live GUI"
-requires-python = ">=3.12"
+version = "0.2.0"
+description = "Amulet XPL: hypnagogic threshold detection and RSSI capture"
+requires-python = ">=3.10"
 dependencies = [
   "numpy>=2.0",
   "scipy>=1.14",
   "scikit-learn>=1.5",
   "pandas>=2.2",
   "pyserial>=3.5",
+  "bleak>=0.22",
 ]
+
+[project.optional-dependencies]
+# Portable local speech-to-text. Windows, macOS and Linux; CPU only, no GPU needed.
+transcribe = ["faster-whisper>=1.0"]
+# Apple-silicon accelerated alternatives. Optional; macOS only.
+mac = ["mlx-whisper>=0.4", "parakeet-mlx>=0.3"]

@@ -1,15 +1,15 @@
 # Software
 
-[`onset-ml/`](onset-ml/) — the bridge, the detector, the cockpit, session filing and on-device
-transcription. Python 3.12.
+[`onset-ml/`](onset-ml/) — bridge, detector, cockpit, session capture and local transcription.
+Python 3.10+, runs on macOS, Windows and Linux.
 
 ```bash
 cd onset-ml
-uv venv --python 3.12 && uv pip install numpy scipy scikit-learn pandas pyserial bleak
-make -C tools/apple_stt                     # on-device speech-to-text (macOS 26+)
+python -m venv .venv
+.venv/bin/pip install -e ".[transcribe]"     # Windows: .venv\Scripts\pip
 
-.venv/bin/python tools/bench_bridge.py      # owns the board — http://localhost:8787
-.venv/bin/python live.py                    # the cockpit  — http://localhost:8790
+.venv/bin/python tools/bench_bridge.py       # owns the board  — http://localhost:8787
+.venv/bin/python live.py                     # the cockpit     — http://localhost:8790
 ```
 
 No hardware:
@@ -19,8 +19,8 @@ No hardware:
 ONSET_BRIDGE=http://localhost:8799 .venv/bin/python live.py
 ```
 
-Architecture: [`docs/05-software.md`](../docs/05-software.md) ·
-Runbook: [`docs/06-running-a-session.md`](../docs/06-running-a-session.md) ·
-Data formats: [`docs/07-data.md`](../docs/07-data.md)
+Architecture and cross-platform notes: [`docs/03-software.md`](../docs/03-software.md) ·
+Data formats: [`docs/04-data.md`](../docs/04-data.md)
 
-> `data/` holds recorded sessions and dream audio. It is gitignored and must stay that way.
+> `data/` holds recorded sessions and audio. It is gitignored and must stay that way.
+> Transcription is entirely local — there is no cloud backend in this codebase.

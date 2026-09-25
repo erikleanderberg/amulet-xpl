@@ -2,9 +2,13 @@
 
 Design notes, from the 2026 literature and from measuring this machine:
 
-* **On-device first.** A dream report is about as private as data gets, so the default path never
-  leaves the Mac. Apple's SpeechAnalyzer (macOS 26+) is the primary engine: it needs no third-party
-  model download, and on this hardware it transcribed a 3.6 s clip in 0.86 s cold.
+* **Local only.** Nothing here calls a web service. A dream report is about as private as data
+  gets, and a study cannot promise participants confidentiality while shipping their audio to a
+  third party. Every backend below runs on the machine in front of you.
+* **Cross-platform.** `faster-whisper` is the portable default and runs on Windows, macOS and
+  Linux from a single `pip install`, CPU-only, no GPU required. On macOS 26+ Apple's
+  SpeechAnalyzer is preferred when present because it is faster and needs no model download, but
+  it is an optimisation, never a requirement.
 * **Whispered speech is the real risk, not latency.** Whispering removes the fundamental frequency
   and harmonic structure that ASR models lean on; Whisper-v3 goes from 3.95 % CER on normal speech
   to 18.93 % on whispered speech. Transcription here happens after the session, so a second of
@@ -17,11 +21,10 @@ Design notes, from the 2026 literature and from measuring this machine:
 """
 from __future__ import annotations
 
-import base64
 import importlib.util
 import json
 import os
-import shutil
+import platform
 import subprocess
 import wave
 
@@ -30,23 +33,20 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 APPLE_CLI = os.path.join(HERE, '..', 'tools', 'apple_stt', 'apple-stt')
 LOCALE = os.environ.get('ONSET_STT_LOCALE', 'en-US')
-# ONSET_STT=apple,mlx_whisper  pins the order; 'wispr' is never reached unless named explicitly.
-ORDER = [b.strip() for b in os.environ.get('ONSET_STT', 'apple,parakeet,mlx_whisper,faster_whisper,whisper').split(',') if b.strip()]
+IS_MAC = platform.system() == 'Darwin'
+# Apple's engine is tried first on macOS only. faster-whisper is the portable fallback and the
+# default everywhere else, so a Windows machine needs no special-casing.
+DEFAULT_ORDER = ('apple,parakeet,mlx_whisper,faster_whisper,whisper' if IS_MAC
+                 else 'faster_whisper,whisper')
+ORDER = [b.strip() for b in os.environ.get('ONSET_STT', DEFAULT_ORDER).split(',') if b.strip()]
 
-WISPR_URL = 'https://platform-api.wisprflow.ai/api/v1/dash/api'
 MODEL_MLX = os.environ.get('ONSET_WHISPER_MODEL', 'mlx-community/whisper-large-v3-turbo')
 MODEL_FW = os.environ.get('ONSET_FW_MODEL', 'large-v3')
 
-# Vocabulary the decoder should lean toward. Dream reports are full of hedging and scene language,
-# and proper nouns are where ASR fails hardest.
-DICTIONARY = [w.strip() for w in os.environ.get(
-    'ONSET_STT_DICTIONARY',
-    'hypnagogia,hypnagogic,dream,dreaming,dreamt,onset,drowsy,glove,Amulet,Dormio,'
-    'vivid,imagery,falling,floating,fragment,half-asleep,drifting').split(',') if w.strip()]
-
-LABELS = dict(apple='Apple SpeechAnalyzer (on-device)', parakeet='parakeet-mlx (on-device)',
-              mlx_whisper='mlx-whisper (on-device)', faster_whisper='faster-whisper (on-device)',
-              whisper='openai-whisper (on-device)', wispr='Wispr Flow (cloud)')
+LABELS = dict(apple='Apple SpeechAnalyzer (local, macOS)', parakeet='parakeet-mlx (local, Apple silicon)',
+              mlx_whisper='mlx-whisper (local, Apple silicon)',
+              faster_whisper='faster-whisper (local, any platform)',
+              whisper='openai-whisper (local, any platform)')
 PIP = dict(parakeet='parakeet-mlx', mlx_whisper='mlx-whisper', faster_whisper='faster-whisper',
            whisper='openai-whisper')
 
@@ -97,9 +97,9 @@ def _has(mod: str) -> bool:
 
 def installed(name: str) -> bool:
     if name == 'apple':
-        return os.path.exists(APPLE_CLI) and os.access(APPLE_CLI, os.X_OK)
-    if name == 'wispr':
-        return bool(os.environ.get('WISPR_API_KEY'))
+        return IS_MAC and os.path.exists(APPLE_CLI) and os.access(APPLE_CLI, os.X_OK)
+    if name in ('parakeet', 'mlx_whisper') and not IS_MAC:
+        return False                                   # MLX is Apple silicon only
     return _has({'parakeet': 'parakeet_mlx'}.get(name, name))
 
 
@@ -107,9 +107,9 @@ def available() -> tuple[str | None, str]:
     for b in ORDER:
         if installed(b):
             return b, LABELS.get(b, b)
-    miss = [PIP[b] for b in ORDER if b in PIP]
-    return None, ('no speech backend available — build tools/apple_stt (swiftc) or '
-                  + ' / '.join(f'`.venv/bin/pip install {m}`' for m in miss[:2]))
+    return None, ('no speech backend installed — run `pip install faster-whisper` '
+                  '(works on Windows, macOS and Linux)'
+                  + (', or build tools/apple_stt with `make -C tools/apple_stt`' if IS_MAC else ''))
 
 
 def _apple(path: str) -> str:
@@ -147,29 +147,8 @@ def _whisper(path: str) -> str:
             .get('text') or '').strip()
 
 
-def _wispr(path: str) -> str:
-    """Cloud fallback. Off unless WISPR_API_KEY is set and 'wispr' is named in ONSET_STT.
-
-    This uploads the recording to a third party. Everything else in this file is on-device.
-    """
-    import urllib.request
-    key = os.environ.get('WISPR_API_KEY')
-    if not key:
-        raise RuntimeError('WISPR_API_KEY not set')
-    if os.path.getsize(path) > 25 * 1024 * 1024:
-        raise RuntimeError('over the 25 MB API limit')
-    body = json.dumps(dict(
-        audio=base64.b64encode(open(path, 'rb').read()).decode(),   # 16 kHz wav, which is what the board makes
-        language=[LOCALE.split('-')[0]],
-        context=dict(app=dict(type='other'), dictionary_context=DICTIONARY))).encode()
-    req = urllib.request.Request(WISPR_URL, data=body, headers={
-        'Authorization': f'Bearer {key}', 'Content-Type': 'application/json'})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return (json.loads(r.read()).get('text') or '').strip()
-
-
 RUNNERS = dict(apple=_apple, parakeet=_parakeet, mlx_whisper=_mlx_whisper,
-               faster_whisper=_faster_whisper, whisper=_whisper, wispr=_wispr)
+               faster_whisper=_faster_whisper, whisper=_whisper)
 
 
 # ---------------------------------------------------------------- entry point

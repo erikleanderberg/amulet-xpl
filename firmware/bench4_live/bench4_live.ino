@@ -355,10 +355,10 @@ static void hapticHousekeeping() {
 // PDM.cpp asks the SoftDevice for HFCLK when it is enabled, so starting the mic
 // after Bluefruit.begin() is safe -- it does NOT repeat the 16 Sep hard fault.
 // The mic is OPT-IN ('m'): a boot-time mic fault would cost another double-tap.
-#define MIC_HZ         16000
+#define MIC_HZ         8000     // speech band; doubles the seconds per KB vs 16 k
 #define MIC_BUF_BYTES  1024                    // 512 samples per block = 32 ms
-#define REC_SECONDS    3
-#define REC_SAMPLES    (MIC_HZ * REC_SECONDS)  // 48000 samples = 96 KB of the 213 KB free
+#define REC_SECONDS    8        // one take. Press again for another; the host joins them.
+#define REC_SAMPLES    (MIC_HZ * REC_SECONDS)  // 64000 samples = 128 KB, leaves ~84 KB headroom
 
 static int16_t       micBlk[MIC_BUF_BYTES / 2];
 static volatile int  micCount = 0;
@@ -504,6 +504,79 @@ static void dumpService() {
 }
 
 
+// ============================= SESSION MACHINE ==============================
+// The study protocol is hands-off: the wearer lies down, the board calibrates, then
+// holds them at the hypnagogic threshold with small cues for the session duration.
+// They touch nothing until it is over.
+//
+//   IDLE --press--> CALIB (2 min) --> RUN (60 min, cues fire) --> wake cue
+//        --> REPORT (each press records a take) --long press--> DONE
+//
+// The timer lives here rather than on the laptop on purpose: if Bluetooth drops
+// mid-session the wearer must still be woken and still be able to record.
+enum SState : uint8_t { SESS_IDLE = 0, SESS_CALIB, SESS_RUN, SESS_REPORT, SESS_DONE };
+static const char *SESS_NAME[] = { "idle", "calib", "run", "report", "done" };
+
+#define SESS_CALIB_S    120UL
+#define SESS_RUN_S      3600UL      // 60 min; "45x" over the link runs 45 instead
+#define SESS_WAKE_MS    2000        // the wake cue is a tone, not a nudge: unmistakable
+
+static SState   sessState   = SESS_IDLE;
+static uint32_t sessT0      = 0;    // millis() at state entry
+static uint32_t sessRunS    = SESS_RUN_S;
+static uint32_t sessTakes   = 0;
+static uint32_t sessLastG   = 0;
+static uint32_t pendingMinutes = 0;   // digits typed before 'x' set the duration
+
+static void sessEmit() {
+  const uint32_t el = (millis() - sessT0) / 1000;
+  uint32_t left = 0;
+  if (sessState == SESS_CALIB) left = el < SESS_CALIB_S ? SESS_CALIB_S - el : 0;
+  else if (sessState == SESS_RUN) left = el < sessRunS ? sessRunS - el : 0;
+  EMITF("G,%lu,%s,%lu,%lu,%lu", (unsigned long)sampleCounter, SESS_NAME[sessState],
+        (unsigned long)el, (unsigned long)left, (unsigned long)sessTakes);
+}
+
+static void sessGo(SState st) {
+  sessState = st; sessT0 = millis();
+  sessEmit();
+}
+
+static void sessStart(uint32_t minutes) {
+  if (sessState != SESS_IDLE && sessState != SESS_DONE) { emit("I,session already running"); return; }
+  sessRunS = minutes ? minutes * 60UL : SESS_RUN_S;
+  sessTakes = 0;
+  if (!micOn) micStart();                  // the level meter doubles as a mic-health check
+  EMITF("I,session start: %lu s calibration then %lu min", (unsigned long)SESS_CALIB_S,
+        (unsigned long)(sessRunS / 60));
+  sessGo(SESS_CALIB);
+}
+
+static void sessAbort(const char *why) {
+  if (sessState == SESS_IDLE) return;
+  EMITF("I,session aborted: %s", why);
+  sessGo(SESS_IDLE);
+}
+
+static void sessService() {
+  const uint32_t now = millis();
+  const uint32_t el = (now - sessT0) / 1000;
+  switch (sessState) {
+    case SESS_CALIB:  if (el >= SESS_CALIB_S) { emit("I,calibration done -- watching"); sessGo(SESS_RUN); } break;
+    case SESS_RUN:
+      if (el >= sessRunS) {
+        emit("I,session over -- wake cue");
+        if (hmode == H_IDLE) startRun(H_TONE, RES_HZ, SESS_WAKE_MS);
+        sessGo(SESS_REPORT);
+        emit("I,press the button to record a take, hold it to finish");
+      }
+      break;
+    default: break;
+  }
+  if (now - sessLastG >= 1000) { sessLastG = now; if (sessState != SESS_IDLE) sessEmit(); }
+}
+
+
 // ============================== BUTTON (D2) =================================
 // 6 mm tactile switch, one leg to the GND rail, the other to D2 (soldered-harness
 // joints 11-12). No external resistor: internal pull-up, so pressed reads LOW.
@@ -511,18 +584,77 @@ static void dumpService() {
 #define BUTTON_PIN   D2
 #define BTN_DEBOUNCE 25
 
+#define BTN_LONG_MS   1200    // finish the report
+#define BTN_OFF_MS    3000    // power down: there is no slide switch on this build
+
 static bool     btnUp      = true;     // pull-up idle = HIGH = released
 static uint32_t btnEdgeMs  = 0;
+static uint32_t btnDownMs  = 0;
 static uint32_t btnPresses = 0;
+static bool     btnHandled = false;    // a long press already acted; ignore the release
+
+// The battery has no switch, so the button is the power control. A 3 s hold parks the
+// chip in System OFF (~2 uA) with the button itself configured as the wake source, so
+// the next press boots it. Only from idle or done -- never mid-session.
+static void powerOff() {
+  emit("I,powering down -- press the button to wake");
+  delay(120);                                  // let the line drain over USB/BLE
+  i2sStop();
+  if (micOn) micStop();
+  digitalWrite(LED_GREEN, HIGH);
+  // wake on the button going low; g_ADigitalPinMap turns the Arduino pin into a port pin
+  nrf_gpio_cfg_sense_input((uint32_t)g_ADigitalPinMap[BUTTON_PIN],
+                           NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_SENSE_LOW);
+  uint8_t sdOn = 0; sd_softdevice_is_enabled(&sdOn);
+  if (sdOn) sd_power_system_off(); else NRF_POWER->SYSTEMOFF = 1;
+  while (true) { __WFE(); }                    // not reached
+}
 
 static void buttonService() {
   const bool up = digitalRead(BUTTON_PIN);
   const uint32_t now = millis();
-  if (up != btnUp && (now - btnEdgeMs) > BTN_DEBOUNCE) {
-    btnUp = up;
-    btnEdgeMs = now;
-    if (!up) btnPresses++;
-    EMITF("K,%lu,%d,%lu", (unsigned long)sampleCounter, up ? 0 : 1, (unsigned long)btnPresses);
+
+  // held: act on the long thresholds without waiting for the release
+  if (!btnUp && !btnHandled) {
+    const uint32_t held = now - btnDownMs;
+    if (held >= BTN_OFF_MS && (sessState == SESS_IDLE || sessState == SESS_DONE)) {
+      btnHandled = true; powerOff();
+    } else if (held >= BTN_LONG_MS) {
+      btnHandled = true;
+      if (sessState == SESS_REPORT) {
+        EMITF("I,report finished: %lu take(s)", (unsigned long)sessTakes);
+        sessGo(SESS_DONE);
+      } else if (sessState == SESS_CALIB || sessState == SESS_RUN) {
+        sessAbort("button held");
+      }
+    }
+  }
+
+  if (up == btnUp || (now - btnEdgeMs) <= BTN_DEBOUNCE) return;
+  btnUp = up; btnEdgeMs = now;
+
+  if (!up) {                                   // ---- pressed
+    btnDownMs = now; btnHandled = false; btnPresses++;
+    EMITF("K,%lu,1,%lu", (unsigned long)sampleCounter, (unsigned long)btnPresses);
+    return;
+  }
+
+  // ---- released
+  EMITF("K,%lu,0,%lu", (unsigned long)sampleCounter, (unsigned long)btnPresses);
+  if (btnHandled) return;                      // the hold already did the work
+  switch (sessState) {
+    case SESS_IDLE:
+    case SESS_DONE:
+      sessStart(0);                            // a press starts a session: no laptop needed
+      break;
+    case SESS_REPORT:
+      if (recording || dumping) { emit("I,busy -- wait for the take to finish"); break; }
+      if (!micOn) micStart();
+      recPos = 0; recording = true; sessTakes++;
+      EMITF("I,take %lu recording %d s ...", (unsigned long)sessTakes, REC_SECONDS);
+      break;
+    default:
+      break;                                   // mid-session presses are logged, not acted on
   }
 }
 
@@ -751,6 +883,13 @@ static void hapticCommand(char c) {
               else emit("I,busy");
               break;
     case 'c': batSetFast(!batFast); break;
+    case 'x': sessStart(pendingMinutes); pendingMinutes = 0; break;   // "45x" = 45 min, "x" = default
+    case 'y': sessAbort("host"); break;
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+      pendingMinutes = pendingMinutes * 10 + (uint32_t)(c - '0');
+      if (pendingMinutes > 600) pendingMinutes = 600;
+      break;
     case 'h': hapticStatus();
               EMITF("K,%lu,%d,%lu", (unsigned long)sampleCounter,
                     digitalRead(BUTTON_PIN) ? 0 : 1, (unsigned long)btnPresses);
@@ -786,7 +925,7 @@ void setup() {
     else NRF_POWER->DCDCEN = 1; }
   i2sInit();  // configured but NOT started: amp stays shut down until asked
 
-  emit("I,bench4_live started (USB + BLE Amulet-XPL) -- S,ms,fsr,pulse,thr @100Hz, B, H, M,ms,rms,peak @50Hz V,ms,mV,pct,chg,fast @2Hz, K,ms,down,count on press (o t b z w n s + - k | m mic, r rec 3s, d download, g gain, l latency)");
+  emit("I,bench4_live started (USB + BLE Amulet-XPL) -- S,ms,fsr,pulse,thr @100Hz, B beats, R,ms,rssi @50Hz, M,ms,rms,peak @50Hz, V,ms,mV,pct,chg,fast @2Hz, K,ms,down,count on press, G,ms,state,elapsed,left,takes @1Hz | session: x start (NNx = NN min), y abort; button: press=start, in report press=take, hold 1.2s=finish, hold 3s=power off | haptics o t b z w n s + - k | mic m r d g l");
   nextUs = micros();
 }
 
@@ -795,6 +934,7 @@ void loop() {
   micService();
   dumpService();
   buttonService();
+  sessService();
   batteryService();
   while (Serial.available()) hapticCommand((char)Serial.read());
   while (bleuart.available()) hapticCommand((char)bleuart.read());
